@@ -6,14 +6,23 @@
 import '@/global.css';
 
 import { Platform } from 'react-native';
+import { DefaultTheme, Theme } from 'expo-router';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    // text: '#000000',
+    // background: '#ffffff',
+    // backgroundElement: '#F0F0F3',
+    // backgroundSelected: '#E0E1E6',
+    // textSecondary: '#60646C',
+     text: '#3e2723',
+    background: '#e2b38faa',
+        // backgroundElement: '#F0F0F3',
+    tint: '#5d4037',
+    icon: '#5d4037',
+    tabIconDefault: '#8d6e63',
+    textSecondary: '#B0B4BA',
+    tabIconSelected: '#3e2723',
   },
   dark: {
     text: '#ffffff',
@@ -21,6 +30,16 @@ export const Colors = {
     backgroundElement: '#212225',
     backgroundSelected: '#2E3135',
     textSecondary: '#B0B4BA',
+  },
+  oldBook: {
+    text: '#3e2723',
+    background: '#e2b38faa',
+    backgroundElement: '#212225',
+    tint: '#5d4037',
+    icon: '#5d4037',
+    tabIconDefault: '#8d6e63',
+    textSecondary: '#B0B4BA',
+    tabIconSelected: '#3e2723',
   },
 } as const;
 
@@ -62,4 +81,18 @@ export const Spacing = {
 } as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+
+export const oldBookTheme: Theme = {
+  ...DefaultTheme,
+  dark:false,
+  colors:{
+    ...DefaultTheme.colors,
+    primary: '#5d4037',
+    background: '#e2b38f81',
+    card: '#d7a178',
+    text: '#3e2723',
+    border: '#c48b60',
+    notification: '#8d6e63',
+  }
+}
 export const MaxContentWidth = 800;
