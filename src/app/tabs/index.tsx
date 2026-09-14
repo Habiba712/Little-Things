@@ -1,57 +1,100 @@
 import * as Device from 'expo-device';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
-
-
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 
 
 
 export default function HomeScreen() {
     const now = new Date();
+    const ref = useRef<View>(null);
+    const [showDeleteOption, setShowDeleteOption] = useState<number | null>(null);
   const day = now.toLocaleString('en-US', { weekday: 'long' });
   const month = now.toLocaleString('en-US', { month: 'long' });
   const dayNumber = now.getDate();
+  const [refreshing, setRefreshing] = useState(false);
   const [name, setName] = useState<string | null>(null);
   const [journalItems, setJournalItems] = useState<any[]>([]);
-  useFocusEffect(
-  useCallback(() => {
-    async function loadData() {
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadData();
+  };
+  const onDelete = async (item: any) => {
+    const journalItems = await SecureStore.getItemAsync('journal-entry');
+    if(journalItems){
+      const journalItemsArray = JSON.parse(journalItems);
+      const newArray = journalItemsArray.filter((journalItem: any) => journalItem.genericDate !== item.genericDate);
+      await SecureStore.setItemAsync('journal-entry', JSON.stringify(newArray));
+    }
+    loadData();
+  };
+  const loadData = async () => {
       const name = await SecureStore.getItemAsync('name');
       setName(name);
 
       const value = await SecureStore.getItemAsync('journal-entry');
+      console.log('value', value);
 
       if (value) {
         setJournalItems(JSON.parse(value));
       }
+      setRefreshing(false);
     }
 
+  useFocusEffect(
+  useCallback(() => {
+    
     loadData();
   }, [])
 );
 
  
   return (
- <View style={styles.container}>
-   <Text style={styles.greeting}>Hey there, {name ? name : ''}</Text>
-   <View >
+ <SafeAreaView style={styles.container}  edges={['top']}>
+  <ScrollView 
+  contentContainerStyle={styles.scrollContent}
+  refreshControl={
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#413023"
+     />
+  }
+  >
+ <Text style={styles.greeting}>Hey there, {name ? name : ''}</Text>
+   
     <Text>{day}, {month} {dayNumber}</Text>
     <View style={styles.entriesContainer}>
-         {journalItems.map((item, index) => (
+         {journalItems
+         .sort((a, b) => new Date(b.genericDate).getTime() - new Date(a.genericDate).getTime())
+         .map((item, index) => (
       <View key={index} style={styles.entryContainer}>
-        <Pressable style={styles.closeButton} onPress={() => console.log('close')}>
+        {
+          showDeleteOption !== index ?   <Pressable style={styles.closeButton} onPress={() => setShowDeleteOption(index)}>
          <Ionicons name="close" size={24} color="#5f5e5e"
-          style={styles.closeIcon} 
           />
 
         </Pressable>
+        :
+        <View style={styles.closeButton} >
+          <Pressable style={styles.delButton} onPress={() => {
+            onDelete(item);
+            setShowDeleteOption(null)}}>
+            <Text >Delete</Text>
+          </Pressable>
+          <Pressable style={styles.cancelButton} onPress={() => setShowDeleteOption(null)}>
+            <Text >Cancel</Text>
+          </Pressable>
+          </View>
+        }
+      
          
         <View style={styles.iconContainer}>
           <Image source={item.catIcon} style={{ width: 35, height: 35 }} />
@@ -60,26 +103,30 @@ export default function HomeScreen() {
               <Text style={styles.entryName}>{item.name}</Text>
         <Text style={styles.entryDetails}>{item.details}</Text>
         <Text   style={styles.entryNote}>{item.note}</Text>
+      
             </View>
 
       </View>
     ))}
     </View>
 
-   </View>
- </View>
+  </ScrollView>
+  
+ </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    display: 'flex',
-    justifyContent: 'center',
-    flexDirection: 'column',
-    marginTop: 50,
-    width: '100%',
-    paddingHorizontal: Spacing.four,
-  },
+  flex: 1,
+},
+
+scrollContent: {
+  paddingHorizontal: 18,
+  paddingTop: 8,
+  paddingBottom: 30,
+
+},
   greeting: {
     width: '100%',
     fontSize: 24,
@@ -145,10 +192,36 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     right: 0,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',   
+    gap: Spacing.one,
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.two,
   },
-  closeIcon:{
-    color: '#8f8080e1',
+  delButton:{
+    borderWidth: 1,
+    borderColor: '#9f0707e1',
+    padding: 3,
+    borderRadius: 10,
+    backgroundColor: '#e2b38f',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   
-  }
+  },
+  cancelButton:{
+    borderWidth: 1,
+    borderColor: '#7c7272e1',
+    padding: Spacing.one,
+    borderRadius: 10,
+    backgroundColor: '#e2b38f',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  
+  },
+  
 });
 

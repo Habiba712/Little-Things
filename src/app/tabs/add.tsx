@@ -1,10 +1,10 @@
 
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useState } from 'react';
-import { View, Text, StyleSheet, Image, Pressable, TextInput, ImageURISource } from 'react-native';
+import { View, Text, StyleSheet, Image, Pressable, TextInput, ImageURISource, ScrollView } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const CATEGORIES = [
@@ -42,6 +42,8 @@ type ItemState = {
   note: string;
   catName: string;
   catIcon: ImageSourcePropType;
+  date: string;
+  genericDate: string;
 };
 type selectedCatState = {
   id: number;
@@ -54,7 +56,7 @@ export default function AddScreen() {
   const day = now.toLocaleString('en-US', { weekday: 'long' });
   const month = now.toLocaleString('en-US', { month: 'long' });
   const dayNumber = now.getDate();
-
+const [error, setError] = useState<string | null>(null);
 
   const [selectedCat, setSelectedCat] = useState<selectedCatState>(CATEGORIES[0]);
   const [item, setItem] = useState<ItemState>({
@@ -63,9 +65,15 @@ export default function AddScreen() {
     note: '',
     catName: selectedCat.name,
     catIcon: selectedCat.icon,
-  });
+    date: now.toLocaleString('en-US', { weekday: 'long' }) + ', ' + now.toLocaleString('en-US', { month: 'long' }) + ' ' + dayNumber,
+    genericDate: now.toISOString(),
+    });
   const handleSave = async () => {
-    console.log('Saving item...', item, selectedCat);
+      if (!item.name.trim()) {
+        setError('Please enter a name');
+        return;
+  }
+    
     // await SecureStore.deleteItemAsync('journal-entry');
 
     const getArray = await SecureStore.getItemAsync('journal-entry');
@@ -81,8 +89,11 @@ export default function AddScreen() {
   
   };
   return (
-    <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Add somthing</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      >
+    <Text style={styles.sectionTitle}>Add somthing</Text>
       <Text style={styles.sectionSubtitle}>{day}, {month} {dayNumber}</Text>
 
       {/* Display the categories in a grid */}
@@ -94,6 +105,7 @@ export default function AddScreen() {
               ...item,
               catName: category.name,
               catIcon: category.icon,
+              genericDate: now.toISOString(),
             })}
           }>
       
@@ -126,7 +138,11 @@ export default function AddScreen() {
         name: text,
       })
     }
+    
   />
+  {
+    error && <Text style={styles.error}>{error}</Text>
+  }
 
   <TextInput
     style={styles.input}
@@ -162,8 +178,10 @@ export default function AddScreen() {
   </Pressable>
 
 </View>
+      </ScrollView>
+  
 
-    </View>
+   </SafeAreaView>
   );
 }
 
@@ -172,9 +190,11 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     flexDirection: 'column',
-    marginTop: 50,
-    // width: '100%',
-    paddingHorizontal: 10,
+
+  },
+   scrollContent: {
+    paddingHorizontal: 18,
+    paddingTop: 8,
 
   },
   sectionTitle: {
@@ -190,6 +210,16 @@ const styles = StyleSheet.create({
   sectionSubtitle:{
     fontSize: 14,
     fontWeight: 400
+  },
+  error: {
+    fontSize: 14,
+    fontWeight: 400,
+    color: '#a80b0b',
+    display: 'flex',
+    justifyContent: 'flex-start',
+    textAlign: 'left',
+    position: 'relative',
+    top: -10,
   },
   safeArea: {
    display: 'flex',
