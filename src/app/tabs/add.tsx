@@ -1,7 +1,10 @@
 
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useState } from 'react';
-import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Image, Pressable, TextInput, ImageURISource } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
+
 
 
 const CATEGORIES = [
@@ -37,19 +40,46 @@ type ItemState = {
   name: string;
   details: string;
   note: string;
+  catName: string;
+  catIcon: ImageSourcePropType;
 };
+type selectedCatState = {
+  id: number;
+  name: string;
+  icon: ImageSourcePropType;
+};
+type ImageSourcePropType = ImageURISource | ImageURISource[];
 export default function AddScreen() {
   const now = new Date();
   const day = now.toLocaleString('en-US', { weekday: 'long' });
   const month = now.toLocaleString('en-US', { month: 'long' });
   const dayNumber = now.getDate();
 
+
+  const [selectedCat, setSelectedCat] = useState<selectedCatState>(CATEGORIES[0]);
   const [item, setItem] = useState<ItemState>({
     name: '',
     details: '',
     note: '',
+    catName: selectedCat.name,
+    catIcon: selectedCat.icon,
   });
-  const [selectedCat, setSelectedCat] = useState<number>(0);
+  const handleSave = async () => {
+    console.log('Saving item...', item, selectedCat);
+    // await SecureStore.deleteItemAsync('journal-entry');
+
+    const getArray = await SecureStore.getItemAsync('journal-entry');
+    if(getArray){
+      const journalItems = getArray ? JSON.parse(getArray) : [];
+    journalItems.push(item);
+    await SecureStore.setItemAsync('journal-entry', JSON.stringify(journalItems));
+        }
+        else{
+          await SecureStore.setItemAsync('journal-entry', JSON.stringify([item]));
+        }
+    router.replace('/tabs');
+  
+  };
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Add somthing</Text>
@@ -58,7 +88,14 @@ export default function AddScreen() {
       {/* Display the categories in a grid */}
       <View style={styles.safeArea}>
         {CATEGORIES.map((category) => (
-          <Pressable key={category.id} style={[styles.catButton , selectedCat === category.id && { borderColor: '#413023', borderWidth: 2 }]} onPress={() => setSelectedCat(category.id)}>
+          <Pressable key={category.id} style={[styles.catButton , selectedCat.id === category.id && { borderColor: '#413023', borderWidth: 2 }]} onPress={() => {setSelectedCat(category)
+
+            setItem({
+              ...item,
+              catName: category.name,
+              catIcon: category.icon,
+            })}
+          }>
       
             <View >
               <Image source={category.icon} style={{ width: 35, height: 35 }} />
@@ -70,9 +107,61 @@ export default function AddScreen() {
       </View>
 
       {/* Display the form */}
-      <View >
-        <Text style={styles.title}>{CATEGORIES[selectedCat].name} Name</Text>
-      </View>
+    <View style={styles.formContainer}>
+<View style={styles.formHeader}>
+   <Image source={selectedCat.icon} style={{ width: 20, height: 20 }} />
+    <Text style={styles.formTitle}>
+   
+    {selectedCat.name} name</Text>
+
+</View>
+ 
+  <TextInput
+    style={styles.input}
+    placeholder="Name"
+    value={item.name}
+    onChangeText={(text) =>
+      setItem({
+        ...item,
+        name: text,
+      })
+    }
+  />
+
+  <TextInput
+    style={styles.input}
+    placeholder="Details"
+    value={item.details}
+    onChangeText={(text) =>
+      setItem({
+        ...item,
+        details: text,
+      })
+    }
+  />
+
+  <TextInput
+  
+    style={styles.textarea}
+    placeholder="Write a little note..."
+    multiline
+    value={item.note}
+    onChangeText={(text) =>
+      setItem({
+        ...item,
+        note: text,
+      })
+    }
+  />
+  
+
+  <Pressable style={styles.saveButton}
+  onPress={() => handleSave()}
+  >
+    <Text style={styles.saveButtonText}>Save ✨</Text>
+  </Pressable>
+
+</View>
 
     </View>
   );
@@ -139,5 +228,71 @@ const styles = StyleSheet.create({
   catName: {
     fontSize: 11.5,
     fontWeight: 400
+  },
+  formContainer:{
+    // display: 'flex',
+    // flexDirection: 'column',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    paddingHorizontal: Spacing.one,
+    paddingVertical: Spacing.four,
+    gap: Spacing.three,
+  },
+  formHeader:{
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+
+    alignItems: 'center',
+    gap: Spacing.one,
+    fontSize: 14,
+    fontWeight: 700,
+
+  },
+  formTitle:{
+    fontSize: 14,
+    fontWeight: 700,
+    color: '#413023',
+  },
+  noteInput:{
+
+  },
+  input:{
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#7a77749f',
+    borderRadius: 10,
+  },
+  // input:focus:{
+
+  // },
+  saveButton:{
+    width: '100%',
+    height: 50,
+    backgroundColor: '#413023',
+    borderRadius: 10,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+ 
+    textarea: {
+  width: '100%',
+  minHeight: 120,
+  borderWidth: 1,
+  borderColor: '#c2936f',
+  borderRadius: 15,
+  paddingHorizontal: 15,
+  paddingVertical: 12,
+
+  textAlignVertical: 'top',
+},
+  
+  saveButtonText:{
+      fontSize: 17,
+      fontWeight: 700,
+      color: '#ffffff',
+      textAlign: 'center',
+      textTransform: 'uppercase',
   }
 });
