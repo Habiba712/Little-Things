@@ -72,7 +72,9 @@ export default function HomeScreen() {
    
     <Text>{day}, {month} {dayNumber}</Text>
     <View style={styles.entriesContainer}>
-         {journalItems
+         {
+         journalItems.length > 0 ?
+         journalItems
          .sort((a, b) => new Date(b.genericDate).getTime() - new Date(a.genericDate).getTime())
          .map((item, index) => (
       <View key={index} style={styles.entryContainer}>
@@ -107,7 +109,11 @@ export default function HomeScreen() {
             </View>
 
       </View>
-    ))}
+    ))
+   :
+    <Text style={styles.noEntries}>No entries yet</Text>
+  }
+   
     </View>
 
   </ScrollView>
@@ -222,6 +228,12 @@ scrollContent: {
     alignItems: 'center',
   
   },
-  
+  noEntries:{
+    fontSize: 13,
+    fontWeight: 500,
+    color: '#585757',
+    textAlign: 'center',
+    paddingVertical: Spacing.two,
+  }
 });
 

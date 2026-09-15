@@ -99,14 +99,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
     header: {
+  
     width: '100%',
     fontSize: 24,
     fontWeight: 'bold',
     color: '#413023',
-    display: 'flex',
+    display: 'flex',  
     justifyContent: 'flex-start',
     textAlign: 'left',
-
   },
 
 scrollContent: {
