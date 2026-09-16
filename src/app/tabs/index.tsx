@@ -9,7 +9,7 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 
-
+import { Fonts } from '@/constants/theme';
 
 export default function HomeScreen() {
     const now = new Date();
@@ -99,7 +99,7 @@ export default function HomeScreen() {
       
          
         <View style={styles.iconContainer}>
-          <Image source={item.catIcon} style={{ width: 35, height: 35 }} />
+          <Image source={item.catIcon } style={{ width: 35, height: 35 }} />
           </View>
           <View>
               <Text style={styles.entryName}>{item.name}</Text>
@@ -136,7 +136,7 @@ scrollContent: {
   greeting: {
     width: '100%',
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: Fonts.handBold,
     color: '#413023',
     display: 'flex',
     justifyContent: 'flex-start',

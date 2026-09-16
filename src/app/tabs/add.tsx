@@ -5,18 +5,23 @@ import { View, Text, StyleSheet, Image, Pressable, TextInput, ImageURISource, Sc
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import CoffeeIcon from '@/assets/images/hot.svg';
+
+import type { SvgProps } from 'react-native-svg';
+
 
 
 const CATEGORIES = [
   {
     id: 0,
     name: 'Coffee',
-    icon: require('@/assets/images/tabIcons/coffee-cup (1).png'),
+    icon: require('@/assets/images/hot.svg'),
+    
   },
   {
     id: 1,
     name: 'Books',
-    icon: require('@/assets/images/tabIcons/book.png'),
+    icon: require('@/assets/images/book.svg'),
   },
   {
     id: 2,
@@ -41,14 +46,14 @@ type ItemState = {
   details: string;
   note: string;
   catName: string;
-  catIcon: ImageSourcePropType;
+  catIcon: ImageSourcePropType | SvgProps;
   date: string;
   genericDate: string;
 };
 type selectedCatState = {
   id: number;
   name: string;
-  icon: ImageSourcePropType;
+  icon: ImageSourcePropType | SvgProps;
 };
 type ImageSourcePropType = ImageURISource | ImageURISource[];
 export default function AddScreen() {
@@ -94,6 +99,7 @@ const [error, setError] = useState<string | null>(null);
       contentContainerStyle={styles.scrollContent}
       >
     <Text style={styles.sectionTitle}>Add somthing</Text>
+    <Image source={CoffeeIcon} style={{ width: 50, height: 50 }} />
       <Text style={styles.sectionSubtitle}>{day}, {month} {dayNumber}</Text>
 
       {/* Display the categories in a grid */}
@@ -110,7 +116,10 @@ const [error, setError] = useState<string | null>(null);
           }>
       
             <View >
-              <Image source={category.icon} style={{ width: 35, height: 35 }} />
+            <Image
+  source={CoffeeIcon}
+  style={{ width: 20, height: 20 }}
+/>
 
             </View>
                   <Text style={styles.catName}>{category.name}</Text>
@@ -121,7 +130,7 @@ const [error, setError] = useState<string | null>(null);
       {/* Display the form */}
     <View style={styles.formContainer}>
 <View style={styles.formHeader}>
-   <Image source={selectedCat.icon} style={{ width: 20, height: 20 }} />
+ <Image source={selectedCat.icon} style={{ width: 50, height: 50 }} />
     <Text style={styles.formTitle}>
    
     {selectedCat.name} name</Text>
