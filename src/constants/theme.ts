@@ -16,7 +16,7 @@ export const Colors = {
     // backgroundSelected: '#E0E1E6',
     // textSecondary: '#60646C',
      text: '#3e2723',
-    background: '#e2b38faa',
+    background: '#f5ecd7',
         // backgroundElement: '#F0F0F3',
     tint: '#5d4037',
     icon: '#5d4037',
@@ -33,7 +33,7 @@ export const Colors = {
   },
   oldBook: {
     text: '#3e2723',
-    background: '#e2b38faa',
+    background: '#f5ecd7',
     backgroundElement: '#212225',
     tint: '#5d4037',
     icon: '#5d4037',

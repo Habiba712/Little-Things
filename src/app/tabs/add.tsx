@@ -6,6 +6,11 @@ import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CoffeeIcon from '@/assets/images/hot.svg';
+import MusicIcon from '@/assets/images/music.svg';
+import CookiesIcon from '@/assets/images/cookies.svg';
+import GalleryIcon from '@/assets/images/gallery.svg';
+import FavoriteIcon from '@/assets/images/favorite.svg';
+import BookIcon from '@/assets/images/book.svg';
 
 import type { SvgProps } from 'react-native-svg';
 
@@ -116,10 +121,30 @@ const [error, setError] = useState<string | null>(null);
           }>
       
             <View >
-            <Image
-  source={CoffeeIcon}
-  style={{ width: 20, height: 20 }}
-/>
+             {category.name === 'Coffee' ? (
+  <CoffeeIcon width={30} height={30} />
+) : category.name === 'Books' ? (
+  <BookIcon width={30} height={30} />
+) : 
+  category.name === 'Songs' ? (
+    <MusicIcon width={30} height={30} />
+  ) : 
+  category.name === 'Tiny Treats' ? (
+    <CookiesIcon width={30} height={30} />
+  ) : 
+  category.name === 'Moments' ? (
+    <GalleryIcon width={30} height={30} />
+  ) :
+  category.name === 'Favorites' ? (
+    <FavoriteIcon width={30} height={30} />
+) :
+
+(
+  <Image
+    source={category.icon}
+    style={{ width: 30, height: 30 }}
+  />
+)}
 
             </View>
                   <Text style={styles.catName}>{category.name}</Text>
@@ -130,7 +155,7 @@ const [error, setError] = useState<string | null>(null);
       {/* Display the form */}
     <View style={styles.formContainer}>
 <View style={styles.formHeader}>
- <Image source={selectedCat.icon} style={{ width: 50, height: 50 }} />
+    
     <Text style={styles.formTitle}>
    
     {selectedCat.name} name</Text>

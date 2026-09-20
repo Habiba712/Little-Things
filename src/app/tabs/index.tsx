@@ -8,7 +8,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
+import CoffeeIcon from '@/assets/images/hot.svg';
+import MusicIcon from '@/assets/images/music.svg';
+import CookiesIcon from '@/assets/images/cookies.svg';
+import GalleryIcon from '@/assets/images/gallery.svg';
+import FavoriteIcon from '@/assets/images/favorite.svg';
+import BookIcon from '@/assets/images/book.svg';
 import { Fonts } from '@/constants/theme';
 
 export default function HomeScreen() {
@@ -99,10 +104,33 @@ export default function HomeScreen() {
       
          
         <View style={styles.iconContainer}>
-          <Image source={item.catIcon } style={{ width: 35, height: 35 }} />
+          {item.catName === 'Coffee' ? (
+  <CoffeeIcon width={30} height={30} />
+) : item.catName === 'Books' ? (
+  <BookIcon width={30} height={30} />
+) : 
+  item.catName === 'Songs' ? (
+    <MusicIcon width={30} height={30} />
+  ) : 
+  item.catName === 'Tiny Treats' ? (
+    <CookiesIcon width={30} height={30} />
+  ) : 
+  item.catName === 'Moments' ? (
+    <GalleryIcon width={30} height={30} />
+  ) :
+  item.catName === 'Favorites' ? (
+    <FavoriteIcon width={30} height={30} />
+) :
+
+(
+  <Image
+    source={item.icon}
+    style={{ width: 30, height: 30 }}
+  />
+)}
           </View>
           <View>
-              <Text style={styles.entryName}>{item.name}</Text>
+              <Text style={styles.entryName}>{item.catName}</Text>
         <Text style={styles.entryDetails}>{item.details}</Text>
         <Text   style={styles.entryNote}>{item.note}</Text>
       

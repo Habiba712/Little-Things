@@ -5,7 +5,12 @@ import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import JournalEntryDetails from '@/components/journal/journalEntryDetails';
-
+import CoffeeIcon from '@/assets/images/hot.svg';
+import MusicIcon from '@/assets/images/music.svg';
+import CookiesIcon from '@/assets/images/cookies.svg';
+import GalleryIcon from '@/assets/images/gallery.svg';
+import FavoriteIcon from '@/assets/images/favorite.svg';
+import BookIcon from '@/assets/images/book.svg';
 
 
 export default function JournalScreen() {
@@ -73,7 +78,30 @@ export default function JournalScreen() {
                     {
                   todayEntries.map((item, index) => (
                     <View key={index} >
-                      <Image source={item.catIcon} style={{ width: 15, height: 15 }} />
+                      {item.catName === 'Coffee' ? (
+                       <CoffeeIcon width={30} height={30} />
+                     ) : item.catName === 'Books' ? (
+                       <BookIcon width={30} height={30} />
+                     ) : 
+                       item.catName === 'Songs' ? (
+                         <MusicIcon width={30} height={30} />
+                       ) : 
+                       item.catName === 'Tiny Treats' ? (
+                         <CookiesIcon width={30} height={30} />
+                       ) : 
+                       item.catName === 'Moments' ? (
+                         <GalleryIcon width={30} height={30} />
+                       ) :
+                       item.catName === 'Favorites' ? (
+                         <FavoriteIcon width={30} height={30} />
+                     ) :
+                     
+                     (
+                       <Image
+                         source={item.icon}
+                         style={{ width: 30, height: 30 }}
+                       />
+                     )}
                     </View>
                   ))
                 }
