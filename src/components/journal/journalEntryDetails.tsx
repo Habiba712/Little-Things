@@ -24,6 +24,7 @@ export default function JournalEntryDetails(
         onBack(): void
     }
 ) {
+  console.log('ites', items)
   const now = new Date();
   const currentDate = now.toLocaleString('en-US', { weekday: 'long' }) + ', ' + now.toLocaleString('en-US', { month: 'long' }) + ' ' + now.getDate();
   return(
@@ -35,7 +36,7 @@ export default function JournalEntryDetails(
         </Pressable>
          <View style={styles.entriesContainer}>
             <Text>
-                {currentDate}
+                {items[0].date}
             </Text>
                  {items.map((item, index) => (
               <View key={index} style={styles.entryContainer}>
@@ -64,19 +65,15 @@ export default function JournalEntryDetails(
   item.catName === 'Favorites' ? (
     <FavoriteIcon width={30} height={30} />
 ) :
-
-(
-  <Image
-    source={category.icon}
-    style={{ width: 30, height: 30 }}
-  />
-)}
-                  </View>
-                  <View>
+null}
+ <View>
                       <Text style={styles.entryName}>{item.name}</Text>
                 <Text style={styles.entryDetails}>{item.details}</Text>
                 <Text   style={styles.entryNote}>{item.note}</Text>
                     </View>
+
+                  </View>
+                 
         
               </View>
             ))}
@@ -121,12 +118,14 @@ const styles = StyleSheet.create({
       gap: Spacing.one,
       display: 'flex',
       flexDirection: 'row',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
       alignSelf: 'stretch',
       paddingHorizontal: Spacing.two,
       paddingVertical: Spacing.two,
       borderWidth:1,
-      borderColor: '#c2936f',
-      backgroundColor: '#e2b38f',
+      borderColor: '#f1c5a3',
+      backgroundColor: '#dcb79bb9',
       borderRadius: 10,
     },
     entryName: {
