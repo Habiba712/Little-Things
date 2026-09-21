@@ -17,17 +17,16 @@ export default function JournalScreen() {
   const now = new Date();
   const [refreshing, setRefreshing] = useState(false);
   const currentDate = now.toLocaleString('en-US', { weekday: 'long' }) + ', ' + now.toLocaleString('en-US', { month: 'long' }) + ' ' + now.getDate();
-  const [todayEntries, setTodayEntries] = useState<any[]>([]);
+  const [entries, setEntries] = useState<any[]>([]);
   const [showDetails, setShowDetails] = useState(false);
 
-  const getTodayEntries = async () =>{
+  const getEntries = async () =>{
     const getArray = await SecureStore.getItemAsync('journal-entry');
     if(getArray){
       const journalItems = getArray ? JSON.parse(getArray) : [];
       // console.log(journalItems);
-      const todayEntries = journalItems.filter((item: any) => item.date === currentDate);
-      // console.log('ttt',todayEntries);
-      setTodayEntries(todayEntries);
+      // console.log('ttt',entries);
+      setEntries(journalItems);
 
     }
     else{
@@ -38,13 +37,13 @@ export default function JournalScreen() {
 
   useEffect(() => {
     setShowDetails(false);
-    getTodayEntries().then(entries => {
+    getEntries().then(entries => {
       // console.log(entries);
     });
   }, []);
   const onRefresh = () => {
     setRefreshing(true);
-    getTodayEntries().then(entries => {
+    getEntries().then(entries => {
       // console.log(entries);
     });
   };
@@ -63,11 +62,14 @@ export default function JournalScreen() {
       >
         {
           showDetails ? <>
-          <JournalEntryDetails items={todayEntries} onBack={() => setShowDetails(false)} />
+          <JournalEntryDetails items={entries} onBack={() => setShowDetails(false)} />
           </> :
           <>
             <Text style={styles.header}>Journal</Text>
-        <View style={styles.entriesContainer}>
+            {
+              entries.length > 0 &&
+              entries.map((item, index) => (
+                 <View style={styles.entriesContainer}>
 
             <Pressable  
             onPress={() => setShowDetails(true)}
@@ -76,7 +78,7 @@ export default function JournalScreen() {
                <Text style={styles.entryName}>{currentDate}</Text>
                 <View style={styles.detailsContainer}>
                     {
-                  todayEntries.map((item, index) => (
+                  entries.map((item, index) => (
                     <View key={index} >
                       {item.catName === 'Coffee' ? (
                        <CoffeeIcon width={30} height={30} />
@@ -106,13 +108,17 @@ export default function JournalScreen() {
                   ))
                 }
                 <Text>
-                  {todayEntries.length === 0 ? '0' : todayEntries.length} things.
+                  {entries.length === 0 ? '0' : entries.length} things.
                 </Text>
                 </View>
               
             </Pressable>
 
           </View>
+              ))
+  
+            }
+     
           </>
         }
     
