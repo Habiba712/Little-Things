@@ -1,4 +1,4 @@
-import { Spacing } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import {
   View,
   Text,
@@ -23,6 +23,45 @@ export default function JournalScreen() {
   const [entries, setEntries] = useState<any[]>([]);
   const [showDetails, setShowDetails] = useState(false);
 const [selectedDateEntries, setSelectedDateEntries] = useState<any[]>([]);
+const getMonthName = (date: string) => {
+  const month = date.split('-')[1];
+  if (month === '01') {
+    return 'January';
+  } else if (month === '02') {  
+    return 'Feb';
+    } else if (month === '03') {
+      return 'Mar';
+      } else if (month === '04') {
+        return 'Apr';
+        } else if (month === '05') {
+          return 'May';
+          } else if (month === '06') {
+            return 'Jun';
+            } else if (month === '07') {
+              return 'Jul';
+              } else if (month === '08') {
+                return 'Aug';
+                } else if (month === '09') {
+                  return 'Sep';
+                  } else if (month === '10') {
+                    return 'Oct';
+                    } else if (month === '11') {
+                      return 'Nov';
+                      } else if (month === '12') {
+                        return 'Dec';
+                        } else {
+                          return 'Unknown';
+                        }
+}
+const getDayNumber = (date: string) => {
+  const day = date.split('-')[2];
+  return day;
+}
+
+const getDayName = (date: string) => {
+  const day = new Date(date).toLocaleString('en-US', { weekday: 'long' });
+  return day;
+}
 
   const getEntries = async () => {
     const getArray = await SecureStore.getItemAsync('journal-entry');
@@ -79,7 +118,8 @@ const [selectedDateEntries, setSelectedDateEntries] = useState<any[]>([]);
           />
         ) : (
           <>
-            <Text style={styles.header}>Journal</Text>
+            <Text style={styles.header}>My Journal</Text>
+            <Text style={styles.subHeader}>All your little days  </Text>
 
             {Object.entries(groupedByDate).map(
               ([date, dateEntries]: [string, any[]]) => (
@@ -91,29 +131,51 @@ const [selectedDateEntries, setSelectedDateEntries] = useState<any[]>([]);
   }}
                     style={styles.entryContainer}
                   >
-                    <Text style={styles.entryName}>
-                      {dateEntries[0].date}
-                    </Text>
+                    <View style={styles.entryName}>
+                      <Text style={styles.entry}>{getMonthName(date)}</Text>
+                      
+                     <Text style={styles.entry}>{getDayNumber(date)}</Text>
+                    </View>
                     <View style={styles.iconContainer}>
-                      {
+                      <Text style={styles.entryDay}>{getDayName(date)}</Text>
+                      <View style={styles.icons}>
+                        {
                         dateEntries.map((item, index) => (
                           <>
                             {item.catName === 'Coffee' ? (
-                              <CoffeeIcon width={20} height={20} />
+                              <Text style={styles.iconBox}><CoffeeIcon width={20} height={20} />
+                                </Text>
+                           
                             ) : item.catName === 'Books' ? (
-                              <BookIcon width={20} height={20} />
+                              
+                              <Text style={styles.iconBox}>
+                              <BookIcon width={20} height={20}  />
+                              </Text>
                             ) :
                               item.catName === 'Songs' ? (
+                                <Text style={styles.iconBox}>
                                 <MusicIcon width={20} height={20} />
+
+                                </Text>
                               ) :
                                 item.catName === 'Tiny Treats' ? (
-                                  <CookiesIcon width={20} height={20} />
+                                  <Text style={styles.iconBox}>
+                                  <CookiesIcon width={20} height={20}  />
+
+                                  </Text>
                                 ) :
+
                                   item.catName === 'Moments' ? (
-                                    <GalleryIcon width={20} height={20} />
+                                    <Text style={styles.iconBox}>
+                                    <GalleryIcon width={20} height={20}  />
+
+                                    </Text>
                                   ) :
                                     item.catName === 'Favorites' ? (
+                                      <Text style={styles.iconBox}>
                                       <FavoriteIcon width={20} height={20} />
+
+                                      </Text>
                                     ) :
 
                                       null}
@@ -122,6 +184,8 @@ const [selectedDateEntries, setSelectedDateEntries] = useState<any[]>([]);
                           </>
                         ))
                       }
+                      </View>
+                      
                       <Text style={styles.entryDetails}>
                         {dateEntries.length}{' '}
                         {dateEntries.length === 1 ? 'entry' : 'entries'}
@@ -147,12 +211,16 @@ const styles = StyleSheet.create({
 
   header: {
     width: '100%',
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 27,
     color: '#412023',
+    fontFamily: Fonts.handBold,
     textAlign: 'left',
   },
-
+subHeader:{
+    fontFamily: Fonts.handMed,
+    fontSize: 18,
+    color: '#7A6555',
+},
   scrollContent: {
     paddingHorizontal: 18,
     flexGrow: 1,
@@ -165,14 +233,23 @@ const styles = StyleSheet.create({
 
   entryContainer: {
     gap: Spacing.one,
-    flexDirection: 'column',
+    display: 'flex',
+    flexDirection: 'row',
     alignSelf: 'stretch',
     paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.two,
-    borderWidth: 1,
-    borderColor: '#c2936f',
-    backgroundColor: '#e2b38f',
-    borderRadius: 10,
+    paddingVertical: Spacing.three,
+    borderWidth:1,
+    borderColor: '#D4C0A8',
+    backgroundColor: '#FDF7EE',
+    borderRadius: 15,
+    shadowColor: "#2C1A10",
+    shadowOffset:{
+      width: 0,
+      height: 4
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4
   },
 
   detailsContainer: {
@@ -183,14 +260,51 @@ const styles = StyleSheet.create({
   },
 
   entryName: {
-    fontSize: 13,
-    fontWeight: '800',
+    
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    borderRadius: 15,
+   backgroundColor: '#705123',
+  paddingHorizontal: Spacing.three,
+    height: 50,
+    paddingVertical: Spacing.three,
   },
+entry:{
+    color: '#FDF7EE',
+    fontFamily: Fonts.handBold,
+    fontSize: 17,
+    
+    
 
+},
+icons:{
+  display: 'flex',
+  flexDirection: 'row',
+  
+},
+iconBox:{
+
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+ paddingHorizontal: Spacing.one,
+  paddingVertical: Spacing.one,
+  borderRadius: 25,
+  backgroundColor: '#ede3d4',
+  marginRight: Spacing.one,
+   
+},
+entryDay:{
+  fontFamily: Fonts.handBold,
+  fontSize: 18,
+  color: '#705123'
+},
   entryDetails: {
-    fontSize: 13.5,
-    fontWeight: '600',
+    fontSize: 15,
     marginHorizontal: Spacing.one,
+    fontFamily: Fonts.hand,
+    color: '#7A6555',
   },
 
   entryNote: {
@@ -200,9 +314,11 @@ const styles = StyleSheet.create({
   },
 
   iconContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    gap: Spacing.one,
+    marginLeft: 10,
 
   },
 

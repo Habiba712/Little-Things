@@ -1,0 +1,16 @@
+
+Good instinct — you don't need to go copy an engineering syllabus, you need something that has real depth under the hood but still ends up as a working thing, because that's how you actually operate and what's gotten you this far.
+
+Here's where the "engineering taste" lives without the waste:
+
+**Build a tiny backend security scanner.** Take the OWASP checks you'd run manually on your mobile app and automate a few of them yourself: a script that checks your API endpoints for missing HTTPS, scans your codebase for hardcoded secrets using regex patterns, checks for common misconfigurations. This touches real computer science (parsing, pattern matching, basic automation) while producing something you can put on GitHub that actually does something. This is the kind of project that reads as "understands systems," not "followed a tutorial."
+
+**Add authentication you build yourself, not a library.** You've used JWT via a package before. Implementing the token signing, hashing (bcrypt under the hood), and session logic from more first principles — understanding why it works, not just calling a function — gets you real cryptography and security exposure without becoming a theoretical rabbit hole, because it plugs straight into an app you already have.
+
+**Write a simple network tool.** A port scanner, a basic packet sniffer using Python, or a tool that pings a list of URLs and checks SSL certificate validity. Small, scoped, teaches you how networks actually work underneath the frameworks you normally use, and it's the kind of utility that security-adjacent job postings specifically like to see.
+
+**Containerize and deploy something properly with Docker.** Not glamorous, but genuinely closes a real engineering gap (you mentioned it earlier) and teaches you how production systems are actually built and isolated — which is also security-relevant, since container misconfiguration is its own vulnerability category.
+
+The common thread: each of these is small enough to finish in days to a couple weeks, each teaches something structurally real (not "look how it works," but "I built the part that makes it work"), and each one slots directly into the identity you're already building — full-stack dev with a security edge — instead of being a detour into unrelated theory.
+
+Want me to scope one of these into an actual step-by-step build plan, the kind you could realistically start this week alongside your homework?

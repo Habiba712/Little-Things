@@ -26,6 +26,12 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [name, setName] = useState<string | null>(null);
   const [journalItems, setJournalItems] = useState<any[]>([]);
+  const [randomTranslate, setRandomTranslate] = useState<string>('');
+
+  const getRandomRotateDegree = () => {
+    const randomNumber = Math.floor(Math.random() * 7) - 3;
+    return randomNumber;
+  }
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -75,17 +81,29 @@ export default function HomeScreen() {
   >
  <Text style={styles.greeting}>Hey there, {name ? name : ''}</Text>
    
-    <Text>{day}, {month} {dayNumber}</Text>
+    <Text style={styles.date}>{day}, {month} {dayNumber}</Text>
     <View style={styles.entriesContainer}>
+      <View style={styles.topSection}>
+               <Text style={{
+                 color: '#7a65559c',
+                 position: 'absolute',
+                 top: -12,
+
+               }}>✦✦✦</Text>
+
+         </View>
          {
          journalItems.length > 0 ?
          journalItems
          .sort((a, b) => new Date(b.genericDate).getTime() - new Date(a.genericDate).getTime())
          .map((item, index) => (
-      <View key={index} style={styles.entryContainer}>
+      <View key={index} style={[styles.entryContainer, { transform: [{ rotate: `${getRandomRotateDegree()}deg` }] }]} 
+      >
+        <View style={styles.tape}>
+          </View>
         {
           showDeleteOption !== index ?   <Pressable style={styles.closeButton} onPress={() => setShowDeleteOption(index)}>
-         <Ionicons name="close" size={24} color="#5f5e5e"
+         <Ionicons name="ellipsis-horizontal" size={24} color="#eccdbc"
           />
 
         </Pressable>
@@ -130,9 +148,16 @@ export default function HomeScreen() {
 )}
           </View>
           <View>
-              <Text style={styles.entryName}>{item.catName}</Text>
+              <Text style={styles.entryName}>{item.name}</Text>
         <Text style={styles.entryDetails}>{item.details}</Text>
+        {
+          item.note &&   <View style={styles.entryNotesContainer}>
         <Text   style={styles.entryNote}>{item.note}</Text>
+
+        </View>
+        }
+      
+
       
             </View>
 
@@ -153,17 +178,20 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
   flex: 1,
+  width: '100%',
 },
 
 scrollContent: {
   paddingHorizontal: 18,
   paddingTop: 8,
   paddingBottom: 30,
+  width: '100%',
+  
 
 },
   greeting: {
     width: '100%',
-    fontSize: 24,
+    fontSize: 28,
     fontFamily: Fonts.handBold,
     color: '#413023',
     display: 'flex',
@@ -171,9 +199,40 @@ scrollContent: {
     textAlign: 'left',
 
   },
+  topSection:{
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    color: '#F4EDE0',
+    borderTopWidth: 1,
+    borderColor: '#7a655530',
+    marginBottom: 12
+  },
+  tape:{
+position: 'absolute',
+  top: -12,
+  left: '40%',
+  width: 54,
+  height: 29,
+  backgroundColor: 'rgba(255, 215, 130, 0.69)',
+  transform: [{ rotate: '-2deg' }],
+  },
+  date:{
+    fontSize: 18,
+    fontFamily: Fonts.hand,
+    color: '#7A6555',
+    display: 'flex',
+    justifyContent: 'flex-start',
+    textAlign: 'left',
+  },
    entriesContainer: {
    paddingVertical: Spacing.two,
     gap: Spacing.three,
+    width: '100%',
+    
+    
 
 
   },
@@ -196,31 +255,57 @@ scrollContent: {
     flexDirection: 'row',
     alignSelf: 'stretch',
     paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.two,
+    paddingVertical: Spacing.three,
     borderWidth:1,
-    borderColor: '#c2936f',
-    backgroundColor: '#e2b38f',
-    borderRadius: 10,
+    borderColor: '#D4C0A8',
+    backgroundColor: '#FDF7EE',
+    borderRadius: 15,
+    shadowColor: "#2C1A10",
+    shadowOffset:{
+      width: 0,
+      height: 4
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4
   },
   entryName: {
-    fontSize: 13,
-    fontWeight: 800
+    fontSize: 20,
+    color: "#2C1A10",
+    fontFamily: Fonts.handBold
+
   },
   entryDetails:{
     fontSize: 11.5,
-    fontWeight: 400
+    fontWeight: 400,
+    color: "#4A2C1A",
+    fontFamily: Fonts.handBold,
+  },
+  entryNotesContainer:{
+    display: 'flex',
+    flexDirection: 'row',
+    borderLeftWidth: 3,
+    borderLeftColor: '#D4C0A8',
+    paddingVertical: 5,
+    paddingLeft: 10,
+    marginTop: 5,
   },
   entryNote:{
     fontSize: 11.5,
     fontWeight: 400,
-    color: '#5f3b21',
+    color: '#7A6555',
+    fontFamily: Fonts.hand,
   },
   iconContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: Spacing.two,
+    backgroundColor: '#f5ecd7',
+    borderRadius: 25,
+    width:50,
+    height:50,
+   padding:10
   },
   closeButton:{
     position: 'absolute',

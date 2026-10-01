@@ -127,40 +127,7 @@ export default function CalendarScreen() {
 
    
      }
-      {
-       myEntries.length > 0 ?
-       myEntries
-       .sort((a, b) => new Date(b.genericDate).getTime() - new Date(a.genericDate).getTime())
-       .map((item, index) => (
-     <View style={styles.entryDetails} key={index} >
      
-        {item.catName === 'Coffee' ? (
-                              <CoffeeIcon width={30} height={30} />
-                            ) : item.catName === 'Books' ? (
-                              <BookIcon width={30} height={30} />
-                            ) : 
-                              item.catName === 'Songs' ? (
-                                <MusicIcon width={30} height={30} />
-                              ) : 
-                              item.catName === 'Tiny Treats' ? (
-                                <CookiesIcon width={30} height={30} />
-                              ) : 
-                              item.catName === 'Moments' ? (
-                                <GalleryIcon width={30} height={30} />
-                              ) :
-                              item.catName === 'Favorites' ? (
-                                <FavoriteIcon width={30} height={30} />
-                            ) : null
-                            }
-       <Text style={styles.entryName}>{item.name}</Text>
-
-     </View>
-   ))
-   :
-   <Text style={styles.noEntries}>No entries yet</Text>
-
-   
-     }
    </View>
 
       </ScrollView>
