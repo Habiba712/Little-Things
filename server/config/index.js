@@ -4,7 +4,7 @@ const config = {
 //     origin: process.env.CORS_ALLOW,
 //   },
   mongodbUri : process.env.MONGODB_URI,
-  port: process.env.PORT,
+  port: Number(process.env.PORT),
   nodeEnv: process.env.NODE_ENV,
   jwtSecret: process.env.JWT_SECRET,
 //   cloudinary: {
@@ -17,5 +17,7 @@ const config = {
 //     adminEmail: process.env.ADMIN_EMAIL,
 //   },
 };
+
+
 
 export default config;

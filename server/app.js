@@ -2,7 +2,7 @@ import express from 'express'
 // import morgan from './morgan'
 // import helmet from './helmet'
 
-// import apiRouter from './routers/index.routes'
+import apiRouter from './routers/index.routes.js'
 import cors from 'cors'
 
 const app = express();
@@ -37,7 +37,7 @@ app.use(cors());
 
 
 
-// app.use('/api', apiRouter);
+app.use('/api', apiRouter);
 
 // app.get('/', (req, res) => res.send('MemoryOS'));
 
@@ -49,5 +49,6 @@ app.use(cors());
 //   console.error(err);
 //   res.status(err.status || 500).json({ message: err.message || 'Internal server error' });
 // });
+console.log('wer er here')
 
 export default app;
