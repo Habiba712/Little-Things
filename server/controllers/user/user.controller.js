@@ -11,15 +11,15 @@ userController.register = async (req, res) => {
     console.log('are we here')
     try {
         const {
-            
+            email,
             username,
             password,
           
 
         } = req.body;
-        console.log( username, password)
+        console.log( username, password, email)
 
-        const existingUser = await User.findOne({ username });
+        const existingUser = await User.findOne({ email });
 
         if (existingUser) {
             return res.status(400).json({ message: "User Already Exists in the database" });
@@ -31,7 +31,7 @@ userController.register = async (req, res) => {
         const newUSer = new User({
             base: {
             
-                
+                email,
                 username,
              
            
