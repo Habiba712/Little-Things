@@ -1,0 +1,9 @@
+{
+  "hooks": {
+    "beforeRead": [
+      {
+        "command": ".agents/hooks/protect-env.sh"
+      }
+    ]
+  }
+}
