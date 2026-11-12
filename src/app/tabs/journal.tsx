@@ -8,8 +8,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
+import * as SecureStore from 'expo-secure-store';
 import JournalEntryDetails from '@/components/journal/journalEntryDetails';
 import CoffeeIcon from '@/assets/images/hot.svg';
 import MusicIcon from '@/assets/images/music.svg';
@@ -64,20 +64,22 @@ const getDayName = (date: string) => {
 }
 
   const getEntries = async () => {
-    const getArray = await SecureStore.getItemAsync('journal-entry');
-
-    if (getArray) {
-      const journalItems = JSON.parse(getArray);
-
-      console.log('ttt', journalItems);
-
-      setEntries(journalItems);
+    try {
+      const token = SecureStore.getItem('token');
+      const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/journal-entries`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message ?? 'Could not load journal entries');
+      setEntries(data.entries);
+    } catch (error) {
+      console.error('Could not load journal entries', error);
+    } finally {
+      setRefreshing(false);
     }
-
-    setRefreshing(false);
   };
 
-  const groupedByDate: Record<string, any[]> = entries.reduce((groups, item) => {
+  const groupedByDate = entries.reduce<Record<string, any[]>>((groups, item) => {
     const date = item.genericDate.split('T')[0];
 
     if (!groups[date]) {

@@ -28,17 +28,18 @@ export default function RootLayout() {
   })
 
     const [showSplash, setShowSplash] = useState(true);
+    const [token, setToken] = useState<string | null>(null);
    useEffect(() => {
   if (!loaded) return;
 
   async function prepare() {
-    const onboarded = await SecureStore.getItemAsync('onboarded');
-    const name = await SecureStore.getItemAsync('name');
-
+    // await SecureStore.deleteItemAsync('onboarded');
+    const onboarded = SecureStore.getItem('onboarded');
+    const token = SecureStore.getItem('token');
+    setToken(token);
     console.log(onboarded);
-    console.log(name);
 
-    if (!onboarded) {
+    if (!onboarded ) {
       router.replace('/onboarding');
     }
 
@@ -50,11 +51,12 @@ export default function RootLayout() {
 
   prepare();
 }, [loaded]);
-console.log(showSplash)
+console.log('sss',showSplash)
     return(
         <>
         <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="tabs" />
+          {token ? <Stack.Screen name="auth/login" /> : null}
+      <Stack.Screen name="tabs" />
         </Stack>
 {showSplash && <LittleSplash />}
         </>

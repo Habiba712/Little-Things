@@ -15,9 +15,13 @@ import GalleryIcon from '@/assets/images/gallery.svg';
 import FavoriteIcon from '@/assets/images/favorite.svg';
 import BookIcon from '@/assets/images/book.svg';
 import { Fonts } from '@/constants/theme';
+import { router } from 'expo-router';
 
 export default function HomeScreen() {
     const now = new Date();
+  const today = now.toISOString().split('T')[0];
+    console.log('today', today)
+
     const ref = useRef<View>(null);
     const [showDeleteOption, setShowDeleteOption] = useState<number | null>(null);
   const day = now.toLocaleString('en-US', { weekday: 'long' });
@@ -27,9 +31,8 @@ export default function HomeScreen() {
   const [name, setName] = useState<string | null>(null);
   const [journalItems, setJournalItems] = useState<any[]>([]);
   const [randomTranslate, setRandomTranslate] = useState<string>('');
-
   const getRandomRotateDegree = () => {
-    const randomNumber = Math.floor(Math.random() * 7) - 3;
+    const randomNumber = Math.floor(Math.random() * 7) - 5;
     return randomNumber;
   }
 
@@ -37,27 +40,62 @@ export default function HomeScreen() {
     setRefreshing(true);
     loadData();
   };
+  const handleLogout = async () => {
+  await SecureStore.deleteItemAsync('token');
+  // await SecureStore.deleteItemAsync('onboarded');
+  router.replace('/auth/login');
+};
   const onDelete = async (item: any) => {
-    const journalItems = await SecureStore.getItemAsync('journal-entry');
-    if(journalItems){
-      const journalItemsArray = JSON.parse(journalItems);
-      const newArray = journalItemsArray.filter((journalItem: any) => journalItem.genericDate !== item.genericDate);
-      await SecureStore.setItemAsync('journal-entry', JSON.stringify(newArray));
-    }
-    loadData();
-  };
-  const loadData = async () => {
-      const name = await SecureStore.getItemAsync('name');
-      setName(name);
-
-      const value = await SecureStore.getItemAsync('journal-entry');
-      console.log('value', value);
-
-      if (value) {
-        setJournalItems(JSON.parse(value));
+    try {
+      const token = SecureStore.getItem('token');
+      const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/journal-entries/${item._id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data?.message ?? 'Could not delete journal entry');
       }
-      setRefreshing(false);
+      loadData();
+    } catch (error) {
+      console.error('Could not delete journal entry', error);
     }
+  };
+ const loadData = async () => {
+  try {
+    const token = SecureStore.getItem('token');
+    const username = SecureStore.getItem('username');
+    setName(username);
+
+    const entriesResponse = await fetch(
+      `${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/journal-entries`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+if (!entriesResponse.ok) {
+  throw new Error('Could not load journal entries');
+}
+
+    const entriesData = await entriesResponse.json();
+
+    setJournalItems(entriesData.entries.filter((entry: any) => entry.createdAt.split('T')[0] === today));
+
+    const userResponse = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/user/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (userResponse.ok) {
+      const userData = await userResponse.json();
+      setName(userData.user.base.username);
+    }
+
+  } catch (error) {
+    console.error('LOAD DATA ERROR:', error);
+  } finally {
+    setRefreshing(false);
+  }
+};
 
   useFocusEffect(
   useCallback(() => {
@@ -80,6 +118,9 @@ export default function HomeScreen() {
   }
   >
  <Text style={styles.greeting}>Hey there, {name ? name : ''}</Text>
+ <Pressable onPress={handleLogout} style={styles.logoutButton}>
+  <Text style={styles.logoutButtonText}>Logout</Text>
+</Pressable>
    
     <Text style={styles.date}>{day}, {month} {dayNumber}</Text>
     <View style={styles.entriesContainer}>
@@ -97,7 +138,7 @@ export default function HomeScreen() {
          journalItems
          .sort((a, b) => new Date(b.genericDate).getTime() - new Date(a.genericDate).getTime())
          .map((item, index) => (
-      <View key={index} style={[styles.entryContainer, { transform: [{ rotate: `${getRandomRotateDegree()}deg` }] }]} 
+      <View key={item._id ?? index} style={[styles.entryContainer, { transform: [{ rotate: `${getRandomRotateDegree()}deg`}] }]} 
       >
         <View style={styles.tape}>
           </View>
@@ -138,14 +179,7 @@ export default function HomeScreen() {
   ) :
   item.catName === 'Favorites' ? (
     <FavoriteIcon width={30} height={30} />
-) :
-
-(
-  <Image
-    source={item.icon}
-    style={{ width: 30, height: 30 }}
-  />
-)}
+) : null}
           </View>
           <View>
               <Text style={styles.entryName}>{item.name}</Text>
@@ -199,6 +233,15 @@ scrollContent: {
     textAlign: 'left',
 
   },
+  logoutButton: {
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
+  logoutButtonText: {
+    color: '#7A6555',
+    fontFamily: Fonts.hand,
+    fontSize: 16,
+  },
   topSection:{
     display: 'flex',
     flexDirection: 'row',
@@ -251,6 +294,7 @@ position: 'absolute',
   },
   entryContainer: {
     gap: Spacing.one,
+    minHeight: 100,
     display: 'flex',
     flexDirection: 'row',
     alignSelf: 'stretch',

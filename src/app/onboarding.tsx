@@ -1,107 +1,112 @@
+import { useEffect, useRef, useState } from 'react';
+import { Animated, FlatList,ScrollView, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Sparkles } from '../constants/Cozy';
+import { colors, fonts } from '../constants/Theme2';
+import ScreenOne from '../components/onboarding/screenOne';
+import ScreenTwo from '../components/onboarding/screenTwo';
+import ScreenThree from '../components/onboarding/screenThree';
+import ScreenFour from '../components/onboarding/screenFour';
 
 
-import { View, Text, StyleSheet, FlatList, Dimensions } from 'react-native';
-import ScreenOne from '@/components/onboarding/screenOne';
-import ScreenTwo from '@/components/onboarding/screenTwo';
-import ScreenThree from '@/components/onboarding/screenThree';
-import ScreenFour from '@/components/onboarding/screenFour';
-import { useRef, useState, useEffect } from 'react';
-import * as SecureStore from 'expo-secure-store';
-import { router } from 'expo-router';
+const SCREENS = [ScreenOne, ScreenTwo, ScreenThree, ScreenFour];
 
-const {width} = Dimensions.get('window');
+function Dot({ active }: { active: boolean }) {
+  const w = useRef(new Animated.Value(active ? 24 : 8)).current;
 
-const SLIDES = [
-    {
-        key: 1,
-        title: 'Little Things',
-        subtitle: 'A journal for the small moments that make a day yours.',
-        screen: ScreenOne,
-       
-    },
-    {
-        key: 2,
-        title: 'Collect your days',
-        subtitle: 'Every day gets its own page. Add anything — a coffee recipe, a book, a little moment. Nothing is too small.',
-        screen: ScreenTwo,
-    },
-    {
-        key: 3,
-        title: 'Look back whenever',
-        subtitle: 'Your journal and calendar keep every day. Flip back through old pages whenever you want to remember.',
-        screen: ScreenThree,
-    },
-    {
-        key: 4,
-        title: 'One more thing',
-        subtitle: 'Your Name',
-        screen: ScreenFour,
-    }
-]
-export default function OnboardingScreen() {
-    const listRef = useRef<FlatList>(null);
-    const [index, setIndex] = useState(0);
+  useEffect(() => {
+    Animated.spring(w, { toValue: active ? 24 : 8, useNativeDriver: false, friction: 7 }).start();
+  }, [active, w]);
 
-    const finishOnboarding = async () => {
-        await SecureStore.setItemAsync('onboarded', 'true');
-        router.replace('/tabs');
-    };
-
-    const next = () =>{
-
-        if(index < SLIDES.length -1){
-            listRef.current?.scrollToIndex({ index: index + 1, animated: true });
-        }
-
-        if(index === SLIDES.length -1){
-            finishOnboarding();
-        }
-    
-    }
   return (
-    <View style={styles.container}>
-        <FlatList
-         ref={listRef}
-        data={SLIDES}
-        keyExtractor={(item) => item.key}
+    <Animated.View
+      style={[styles.dot, { width: w, backgroundColor: active ? colors.terracotta : colors.caramel }]}
+    />
+  );
+}
+
+export default function Onboarding() {
+  const { width } = useWindowDimensions();
+  const listRef = useRef<FlatList>(null);
+  const [index, setIndex] = useState(0);
+  const last = SCREENS.length - 1;
+
+  const goTo = (i: number) => {
+    listRef.current?.scrollToIndex({ index: i, animated: true });
+    setIndex(i);
+  };
+
+  return (
+    <SafeAreaView style={styles.root}>
+      <Sparkles />
+       
+
+      <FlatList
+        ref={listRef}
+        data={SCREENS}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        // onScroll={handleScroll}
-        scrollEventThrottle={16}
-        renderItem={
-            ({item}) =>{
-             return(
-                   <View style={styles.listScreen}>
-                    <item.screen  />
-                </View>
-             )
-            }
-        }
-        />
-      {/* <Text>Hello, we will multiple screen on here soon !</Text> */}
-    </View>
+        keyboardShouldPersistTaps="handled"
+        keyExtractor={(_, i) => String(i)}
+        getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+        renderItem={({ item: Screen, index: i }) => <Screen active={i === index} />}
+        onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
+      />
+ {/* <ScrollView contentContainerStyle={styles.container} > */}
+
+      <View style={styles.footer}>
+        <View style={styles.dots}>
+          {SCREENS.map((_, i) => (
+            <Dot key={i} active={i === index} />
+          ))}
+        </View>
+
+        {index < last ? (
+          <View style={styles.actions}>
+            <Pressable onPress={() => goTo(last)} hitSlop={10}>
+              <Text style={styles.skip}>Skip</Text>
+            </Pressable>
+            <Pressable onPress={() => goTo(index + 1)} style={styles.next}>
+              <Text style={styles.nextText}>Next ✦</Text>
+            </Pressable>
+          </View>
+        ) : null}
+      </View>
+        {/* </ScrollView> */}
+      
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: { 
     flex: 1,
-    backgroundColor: '#e2b38f',
-    justifyContent: 'center',
+
+    backgroundColor: colors.cream,
+  },
+ 
+  footer: {
+    position: 'absolute',
+    bottom:80,
+    left: 0,
+    right: 0,
     alignItems: 'center',
   },
-  listScreen:{
-    width,
-    height: width,
-    justifyContent: 'center',
+  dots: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 18 },
+  dot: { height: 8, borderRadius: 4 },
+  actions: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '82%',
   },
-  itemTitle:{
-    fontSize: 24,
-    fontWeight: 'bold',
+  skip: { fontFamily: fonts.body, fontSize: 15, color: colors.inkSoft },
+  next: {
+    backgroundColor: colors.ink,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 24,
   },
-  itemSubtitle:{
-    fontSize: 14,
-  }
+  nextText: { color: colors.paper, fontFamily: fonts.body, fontSize: 16 },
 });

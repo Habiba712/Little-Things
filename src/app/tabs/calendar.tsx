@@ -24,17 +24,21 @@ type ItemState = {
 export default function CalendarScreen() {
 
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
-  const [myEntries, setMyEntries] = useState<[ItemState]>([]);
+  const [myEntries, setMyEntries] = useState<ItemState[]>([]);
 
   const getEntries = async (selectedDay: string) => {
-    const getArray = await SecureStore.getItemAsync('journal-entry');
-    if(getArray){
-      const journalItems = getArray ? JSON.parse(getArray) : [];
-      // console.log(journalItems);
-      const todayEntries = journalItems.filter((item: any) => item.genericDate.split('T')[0] === selectedDay);
-      console.log('tttt',todayEntries);
+    try {
+      const token = SecureStore.getItem('token');
+      const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/journal-entries`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message ?? 'Could not load journal entries');
+      const { entries } = data;
+      const todayEntries = entries.filter((item: ItemState) => item.genericDate.split('T')[0] === selectedDay);
       setMyEntries(todayEntries);
-
+    } catch (error) {
+      console.error('Could not load calendar entries', error);
     }
    
     
@@ -45,7 +49,7 @@ export default function CalendarScreen() {
   // }, []);
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.header}>Calendar</Text>
       <Calendar
       onDayPress={(day : any) => {
@@ -60,7 +64,6 @@ export default function CalendarScreen() {
     textSectionTitleColor: '#7A5C45',
     selectedDayBackgroundColor: '#C2936F',
     selectedDayTextColor: '#C2936F',
-    clickedDayBackgroundColor: '#a64b06',
     todayTextColor: '#A66A43',
     dayTextColor: '#3D2B1F',
     textDisabledColor: '#D8C8BB',
@@ -143,10 +146,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'column',
     borderColor: '#c2936f',
-    paddingHorizontal: 10,
+    
 
     paddingTop: 8,
   },
+  
+scrollContent: {
+  paddingHorizontal: 18,
+  paddingTop: 8,
+  paddingBottom: 30,
+  width: '100%',
+  
+
+},
   header:{
      fontFamily: 'Caveat_700Bold',
     fontSize: 32,

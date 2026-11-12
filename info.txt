@@ -14,3 +14,16 @@ Here's where the "engineering taste" lives without the waste:
 The common thread: each of these is small enough to finish in days to a couple weeks, each teaches something structurally real (not "look how it works," but "I built the part that makes it work"), and each one slots directly into the identity you're already building — full-stack dev with a security edge — instead of being a detour into unrelated theory.
 
 Want me to scope one of these into an actual step-by-step build plan, the kind you could realistically start this week alongside your homework?
+
+       LITTLE THINGS 📱
+      React Native + Expo
+              |
+              | HTTP requests (axios)
+              ▼
+       EXPRESS API ⚙️
+         Node.js server
+              |
+              | MongoDB driver / Mongoose
+              ▼
+       MONGODB ATLAS ☁️
+         Cloud database

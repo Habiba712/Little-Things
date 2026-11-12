@@ -17,6 +17,7 @@ export const Colors = {
     // textSecondary: '#60646C',
      text: '#2C1A10',
     background: '#FDF7EE',
+    backgroundElement: '#F0F0F3',
         // backgroundElement: '#F0F0F3',
     tint: '#5d4037',
     icon: '#5d4037',

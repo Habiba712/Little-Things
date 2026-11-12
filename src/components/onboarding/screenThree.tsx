@@ -1,33 +1,14 @@
+import Slide from '../../constants/Slide';
 
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
 
-const {width} = Dimensions.get('window');
-
-export default function ScreenOne() {
+export default function ScreenThree({ active }: { active: boolean }) {
   return (
-    <View style={styles.listScreen}>
-      <Text style={styles.itemTitle}>Look back whenever</Text>
-      <Text style={styles.itemSubtitle}>
-      Your journal and calendar keep every day. Flip back through old pages whenever you want to remember.
-        </Text>
-    </View>
+    <Slide
+      active={active}
+      hero="🗓️"
+      orbit={['🌸', '✨', '📷']}
+      title="Look back whenever"
+      subtitle="Your journal and calendar keep every day. Flip back through old pages whenever you want to remember."
+    />
   );
 }
-
-const styles = StyleSheet.create(
-    {
-listScreen:{
-    width,
-    height: width,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  itemTitle:{
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  itemSubtitle:{
-    fontSize: 18,
-  }
-  });

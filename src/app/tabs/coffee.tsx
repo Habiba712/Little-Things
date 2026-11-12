@@ -2,13 +2,13 @@ import { Image } from 'expo-image';
 import { SymbolView } from 'expo-symbols';
 import { ImageSourcePropType, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
 import { useTheme } from '@/hooks/use-theme';
-import { Spacing } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useEffect, useState } from 'react';
 import AddRecipe from '@/components/coffee/addRecipe';
 import { Ionicons } from '@expo/vector-icons';
 import RecipeDetails from '@/components/coffee/recipeDetails';
+import * as SecureStore from 'expo-secure-store';
 
 
 
@@ -61,7 +61,7 @@ function RecipeCard({ recipe }: { recipe: any }) {
       <View style={styles.ratingInput} >
         {
           [1, 2, 3, 4, 5].map((star) => (
-           <View>
+            <View>
               {star <= recipe.rating ?
                 <Text>  <Ionicons name="star" size={18} color="#060606" />
                 </Text>
@@ -86,34 +86,48 @@ export default function TabTwoScreen() {
   const [selectedCat, setSelectedCat] = useState<selectedCatState>(CATEGORIES[0]);
   const [showModal, setShowModal] = useState(false);
   const [recipes, setRecipes] = useState<any[]>([]);
-  const [showRecipeDetails, setShowRecipeDetails] = useState<MODAL_DATA>({show: false, recipe: null});
+  const [showRecipeDetails, setShowRecipeDetails] = useState<MODAL_DATA>({ show: false, recipe: null });
   const [refresh, setRefresh] = useState(false);
-const [filter, setFilter] = useState<string>("All");
+  const [filter, setFilter] = useState<string>("All");
   const onRefresh = async () => {
     setRefresh(true);
-    getRecipes();
-    setRefresh(false);
+    try {
+      await loadRecipes();
+    } finally {
+      setRefresh(false);
+    }
   }
   const theme = useTheme();
 
-  const getRecipes = async () => {
-    const getArray = await SecureStore.getItemAsync('recipes');
-    if (getArray && getArray.length > 0) {
-      setRecipes(getArray ? JSON.parse(getArray) : []);
+  const loadRecipes = async () => {
+    try {
+      const token = SecureStore.getItem('token');
+      const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/recipes`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message ?? 'Could not load recipes');
+      setRecipes(data.recipes);
+    } catch (error) {
+      console.error('Could not load recipes', error);
     }
-    console.log(getArray);
-  }
+  };
 
-  const deleteRecipe = async (id: number) => {
-    const getArray = await SecureStore.getItemAsync('recipes');
-    if (getArray && getArray.length > 0) {
-      const recipes = getArray ? JSON.parse(getArray) : [];
-      const newRecipes = recipes.filter((recipe: any) => recipe.id !== id);
-      await SecureStore.setItemAsync('recipes', JSON.stringify(newRecipes));
-      setRecipes(newRecipes);
+  const removeRecipe = async (id: string) => {
+    try {
+      const token = SecureStore.getItem('token');
+      const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/recipes/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data?.message ?? 'Could not delete recipe');
+      }
+      await loadRecipes();
+    } catch (error) {
+      console.error('Could not delete recipe', error);
     }
-    getRecipes();
-    console.log(getArray);
   }
   useEffect(() => {
     for (let i = 0; i < CATEGORIES.length; i++) {
@@ -121,7 +135,7 @@ const [filter, setFilter] = useState<string>("All");
       console.log(CATEGORIES[i].name)
 
     }
-    getRecipes();
+    loadRecipes();
 
   }, [])
 
@@ -131,59 +145,59 @@ const [filter, setFilter] = useState<string>("All");
     <SafeAreaView style={styles.container} edges={['top']}     >
       {
         showModal ? <AddRecipe onBack={() => setShowModal(false)} /> :
-        showRecipeDetails.show === true ? <RecipeDetails onBack={() => setShowRecipeDetails({show: false, recipe: null})} recipe={showRecipeDetails.recipe} onDelete={() => deleteRecipe(showRecipeDetails.recipe.id)} /> :
+          showRecipeDetails.show === true ? <RecipeDetails onBack={() => setShowRecipeDetails({ show: false, recipe: null })} recipe={showRecipeDetails.recipe} onDelete={() => removeRecipe(showRecipeDetails.recipe._id)} /> :
 
-          <ScrollView
-            refreshControl={
-              <RefreshControl
-                refreshing={refresh}
-                onRefresh={onRefresh}
-              />
-            }
-            contentContainerStyle={styles.scrollContent} >
-            <View style={styles.header}>
-              <Text style={styles.sectionTitle}>Coffee Corner</Text>
-              <Pressable style={styles.newButton} onPress={() => { setShowModal(true) }}>
-                <Text style={styles.newButtonText}>+ New</Text>
-              </Pressable>
-            </View>
-
-            {/* categories slide */}
             <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoriesContainer}
-            >
-              {CATEGORIES.map((category: any) => (
-                <Pressable key={category.id} style={[styles.catButton, selectedCat.id === category.id && styles.selectedCat]} onPress={() => {
-                  setSelectedCat(category)
-                  setFilter(category.name)
+              refreshControl={
+                <RefreshControl
+                  refreshing={refresh}
+                  onRefresh={onRefresh}
+                />
+              }
+              contentContainerStyle={styles.scrollContent} >
+              <View style={styles.header}>
+                <Text style={styles.sectionTitle}>Coffee Corner</Text>
+                <Pressable style={styles.newButton} onPress={() => { setShowModal(true) }}>
+                  <Text style={styles.newButtonText}>+ New</Text>
+                </Pressable>
+              </View>
 
-                }
-                }>
+              {/* categories slide */}
+              <ScrollView
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoriesContainer}
+              >
+                {CATEGORIES.map((category: any) => (
+                  <Pressable key={category.id} style={[styles.catButton, selectedCat.id === category.id && styles.selectedCat]} onPress={() => {
+                    setSelectedCat(category)
+                    setFilter(category.name)
 
-                  {/* <View >
+                  }
+                  }>
+
+                    {/* <View >
                 <Image source={category.icon} style={{ width: 35, height: 35 }} />
 
               </View> */}
-                  <Text style={[styles.catName, selectedCat.id === category.id && styles.selectedCat]}>{category.name}</Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-            {/* my recipes */}
-            <View style={styles.recipesContainer}>
-              {
-                recipes.filter
-                ((recipe: any) => filter === "All" ? recipe : recipe.category === filter).map
-                ((recipe) => (
-                  <Pressable onPress={() => setShowRecipeDetails({show: true, recipe: recipe})}>
-                  <RecipeCard key={recipe.id} recipe={recipe} />
-                    
+                    <Text style={[styles.catName, selectedCat.id === category.id && styles.selectedCat]}>{category.name}</Text>
                   </Pressable>
-                ))
-              }
-            </View>
-          </ScrollView>
+                ))}
+              </ScrollView>
+              {/* my recipes */}
+              <View style={styles.recipesContainer}>
+                {
+                  recipes.filter
+                    ((recipe: any) => filter === "All" ? recipe : recipe.category === filter).map
+                    ((recipe) => (
+                      <Pressable onPress={() => setShowRecipeDetails({ show: true, recipe: recipe })}>
+                        <RecipeCard key={recipe._id} recipe={recipe} />
+
+                      </Pressable>
+                    ))
+                }
+              </View>
+            </ScrollView>
       }
 
 
@@ -199,7 +213,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'column',
     borderColor: '#c2936f',
-    
+
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -207,8 +221,8 @@ const styles = StyleSheet.create({
 
   },
   sectionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontFamily: Fonts.handBold,
     color: '#413023',
     display: 'flex',
     justifyContent: 'flex-start',
@@ -234,8 +248,9 @@ const styles = StyleSheet.create({
   },
 
   newButtonText: {
-    fontSize: 11.5,
-    fontWeight: 700,
+    fontSize: 14.5,
+        fontFamily: Fonts.hand,
+
     color: '#ffffff',
     textAlign: 'center',
     textTransform: 'uppercase',
@@ -254,6 +269,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     marginRight: Spacing.two,
     borderRadius: 25,
+
     borderWidth: 1,
     borderColor: '#d1d0cf',
     backgroundColor: '#f7f6f5',
@@ -262,8 +278,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   catName: {
-    fontSize: 11.5,
-    fontWeight: 700
+    fontSize: 14.5,
+    fontFamily: Fonts.hand,
   },
   selectedCat: {
     backgroundColor: '#191918',
@@ -329,18 +345,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f5f5',
   },
   recipeName: {
-    fontSize: 14,
-    fontWeight: 900,
+    fontSize: 18,
+    fontFamily: Fonts.handBold,
     color: '#1d1c1a',
     display: 'flex',
   },
-  ratingInput:{
+  ratingInput: {
     display: 'flex',
     flexDirection: 'row',
     position: 'relative',
     left: -5,
   },
-  starOutline:{
+  starOutline: {
     marginLeft: 5,
   }
 });

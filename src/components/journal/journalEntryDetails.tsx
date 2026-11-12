@@ -2,10 +2,10 @@
 
 import {View, Text, StyleSheet, Image, Pressable, TextInput, ImageURISource, ScrollView} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Spacing } from '@/constants/theme';
+import { Fonts } from '@/constants/theme';
 
 import CoffeeIcon from '@/assets/images/hot.svg';
 import MusicIcon from '@/assets/images/music.svg';
@@ -30,18 +30,18 @@ export default function JournalEntryDetails(
   return(
     <SafeAreaView>
         <Pressable onPress={onBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={20} color="#5f5e5e"
+            <Ionicons name="arrow-back" size={20} color="#171616"
             />
             <Text style={styles.backButtonText}>Back</Text>
         </Pressable>
          <View style={styles.entriesContainer}>
-            <Text>
+            <Text style={styles.header}>
                 {items[0].date}
             </Text>
                  {items.map((item, index) => (
               <View key={index} style={styles.entryContainer}>
                 <Pressable style={styles.closeButton} onPress={() => console.log('close')}>
-                 <Ionicons name="close" size={24} color="#5f5e5e"
+                 <Ionicons name="close" size={24} color="#090909"
                   style={styles.closeIcon} 
                   />
         
@@ -86,9 +86,9 @@ null}
 const styles = StyleSheet.create({
     header: {
     width: '100%',
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#413023',
+    fontFamily: Fonts.handMed,
+    fontSize: 18,
+    color: '#7A6555',
     display: 'flex',
     justifyContent: 'flex-start',
     textAlign: 'left',
@@ -104,9 +104,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButtonText:{
-    fontSize: 14,
-    fontWeight: 700,
+    fontSize: 18,
     textAlign: 'center',
+    fontFamily: Fonts.handBold,
+    
+    
   },
    entriesContainer: {
      paddingVertical: Spacing.two,
@@ -115,22 +117,24 @@ const styles = StyleSheet.create({
   
     },
   entryContainer: {
-      gap: Spacing.one,
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      alignItems: 'center',
-      alignSelf: 'stretch',
-      paddingHorizontal: Spacing.two,
-      paddingVertical: Spacing.two,
-      borderWidth:1,
-      borderColor: '#f1c5a3',
-      backgroundColor: '#dcb79bb9',
-      borderRadius: 10,
+     gap: Spacing.one,
+    minHeight: 80,
+    display: 'flex',
+    flexDirection: 'row',
+    alignSelf: 'stretch',
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one,
+    borderWidth:1,
+    borderColor: '#D4C0A8',
+    backgroundColor: '#FDF7EE',
+    borderRadius: 15,
+    
+    
     },
     entryName: {
-      fontSize: 13,
-      fontWeight: 800
+      fontSize: 18,
+    color: "#2C1A10",
+    fontFamily: Fonts.handBold
     },
     entryDetails:{
       fontSize: 11.5,
@@ -140,6 +144,7 @@ const styles = StyleSheet.create({
       fontSize: 11.5,
       fontWeight: 400,
       color: '#5f3b21',
+      fontFamily: Fonts.hand,
     },
     iconContainer: {
       display: 'flex',

@@ -7,11 +7,10 @@ import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 
 type RECIPE_DATA = {
-    id: number;
     name: string;
     category: string;
     ingredients: string;
@@ -27,7 +26,6 @@ export default function AddRecipe({
 
     const [rating, setRating] = useState<number>(1);
     const [data, setData] = useState<RECIPE_DATA>({
-        id: 0,
         name: '',
         category: '',
         ingredients: '',
@@ -36,17 +34,22 @@ export default function AddRecipe({
     })
 
     const handleSave = async() => {
-        console.log(data);
-        const getArray = await SecureStore.getItemAsync('recipes');
-        if(getArray){
-            const recipes = getArray ? JSON.parse(getArray) : [];
-            recipes.push({...data, id: Math.random()});
-            await SecureStore.setItemAsync('recipes', JSON.stringify(recipes));
+        try {
+            const token = SecureStore.getItem('token');
+            const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/recipes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(data),
+            });
+            const responseData = await response.json();
+            if (!response.ok) throw new Error(responseData?.message ?? 'Could not save recipe');
+            onBack();
+        } catch (error) {
+            console.error('Could not save recipe', error);
         }
-        else{
-            await SecureStore.setItemAsync('recipes', JSON.stringify([data]));
-        }
-        onBack();
     }
 
     return (

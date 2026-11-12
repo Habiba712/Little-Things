@@ -1,9 +1,9 @@
 
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useState } from 'react';
 import { View, Text, StyleSheet, Image, Pressable, TextInput, ImageURISource, ScrollView } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CoffeeIcon from '@/assets/images/hot.svg';
 import MusicIcon from '@/assets/images/music.svg';
@@ -67,6 +67,7 @@ export default function AddScreen() {
   const month = now.toLocaleString('en-US', { month: 'long' });
   const dayNumber = now.getDate();
 const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const [selectedCat, setSelectedCat] = useState<selectedCatState>(CATEGORIES[0]);
   const [item, setItem] = useState<ItemState>({
@@ -84,18 +85,38 @@ const [error, setError] = useState<string | null>(null);
         return;
   }
     
-    // await SecureStore.deleteItemAsync('journal-entry');
-
-    const getArray = await SecureStore.getItemAsync('journal-entry');
-    if(getArray){
-      const journalItems = getArray ? JSON.parse(getArray) : [];
-    journalItems.push(item);
-    await SecureStore.setItemAsync('journal-entry', JSON.stringify(journalItems));
-        }
-        else{
-          await SecureStore.setItemAsync('journal-entry', JSON.stringify([item]));
-        }
-    router.replace('/tabs');
+    setError(null);
+    setSaving(true);
+    try {
+      const token = SecureStore.getItem('token');
+      const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/journal-entries`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: item.name,
+          details: item.details,
+          note: item.note,
+          catName: item.catName,
+          genericDate: item.genericDate,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message ?? 'Could not save your entry');
+      setItem((currentItem) => ({
+        ...currentItem,
+        name: '',
+        details: '',
+        note: '',
+      }));
+      router.replace('/tabs');
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Could not save your entry');
+    } finally {
+      setSaving(false);
+    }
   
   };
   return (
@@ -104,7 +125,7 @@ const [error, setError] = useState<string | null>(null);
       contentContainerStyle={styles.scrollContent}
       >
     <Text style={styles.sectionTitle}>Add somthing</Text>
-    <Image source={CoffeeIcon} style={{ width: 50, height: 50 }} />
+   
       <Text style={styles.sectionSubtitle}>{day}, {month} {dayNumber}</Text>
 
       {/* Display the categories in a grid */}
@@ -207,6 +228,7 @@ const [error, setError] = useState<string | null>(null);
 
   <Pressable style={styles.saveButton}
   onPress={() => handleSave()}
+  disabled={saving}
   >
     <Text style={styles.saveButtonText}>Save ✨</Text>
   </Pressable>
@@ -233,17 +255,22 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     width: '100%',
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontFamily: Fonts.handBold,
     color: '#413023',
-    display: 'flex',  
+    display: 'flex',
     justifyContent: 'flex-start',
     textAlign: 'left',
+   
     
   },
   sectionSubtitle:{
-    fontSize: 14,
-    fontWeight: 400
+     fontSize: 18,
+    fontFamily: Fonts.hand,
+    color: '#7A6555',
+    display: 'flex',
+    justifyContent: 'flex-start',
+    textAlign: 'left',
   },
   error: {
     fontSize: 14,
@@ -282,16 +309,18 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.four,
     borderRadius: 25,
     borderWidth:1,
-    borderColor: '#c2936f',
-    backgroundColor: '#e2b38f',
+  borderColor: '#D4C0A8',
+    backgroundColor: '#FDF7EE',
     width: '30%',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
   },
   catName: {
-    fontSize: 11.5,
-    fontWeight: 400
+    fontSize: 14.5,
+    fontFamily: Fonts.handBold,
+  color: '#705123'
+
   },
   formContainer:{
     // display: 'flex',
@@ -314,9 +343,9 @@ const styles = StyleSheet.create({
 
   },
   formTitle:{
-    fontSize: 14,
-    fontWeight: 700,
+    fontSize: 18,
     color: '#413023',
+    fontFamily: Fonts.handBold,
   },
   noteInput:{
 
@@ -326,6 +355,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#7a77749f',
     borderRadius: 10,
+    paddingHorizontal: 15,
+    fontFamily: Fonts.hand,
   },
   // input:focus:{
 
@@ -343,18 +374,20 @@ const styles = StyleSheet.create({
     textarea: {
   width: '100%',
   minHeight: 120,
+    fontSize: 14,
   borderWidth: 1,
-  borderColor: '#c2936f',
-  borderRadius: 15,
+      borderColor: '#7a77749f',
+      fontFamily: Fonts.hand,
+      borderRadius: 15,
   paddingHorizontal: 15,
   paddingVertical: 12,
-
+color: '#413023',
   textAlignVertical: 'top',
 },
   
   saveButtonText:{
       fontSize: 17,
-      fontWeight: 700,
+      fontFamily: Fonts.handBold,
       color: '#ffffff',
       textAlign: 'center',
       textTransform: 'uppercase',

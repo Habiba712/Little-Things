@@ -8,7 +8,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export function useTheme() {
   const scheme = useColorScheme();
-  const theme = scheme === 'oldBook' ? 'oldBook' : 'dark';
+  const theme = scheme === 'dark' ? 'dark' : 'oldBook';
 
   return Colors[theme];
 }
