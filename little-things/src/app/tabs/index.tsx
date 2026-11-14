@@ -1,7 +1,9 @@
 import * as Device from 'expo-device';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
+// import * as storage from 'expo-secure-store';
+import { storage } from '../../lib/storage';
+
 import { useEffect, useState, useRef } from 'react';
 import { Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -41,13 +43,13 @@ export default function HomeScreen() {
     loadData();
   };
   const handleLogout = async () => {
-  await SecureStore.deleteItemAsync('token');
-  // await SecureStore.deleteItemAsync('onboarded');
+  await storage.deleteItem('token');
+  // await storage.deleteItemAsync('onboarded');
   router.replace('/auth/login');
 };
   const onDelete = async (item: any) => {
     try {
-      const token = SecureStore.getItem('token');
+      const token = storage.getItem('token');
       const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/journal-entries/${item._id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
@@ -63,8 +65,8 @@ export default function HomeScreen() {
   };
  const loadData = async () => {
   try {
-    const token = SecureStore.getItem('token');
-    const username = SecureStore.getItem('username');
+    const token = storage.getItem('token');
+    const username = storage.getItem('username');
     setName(username);
 
     const entriesResponse = await fetch(

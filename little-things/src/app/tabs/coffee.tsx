@@ -57,12 +57,12 @@ type selectedCatState = {
 function RecipeCard({ recipe }: { recipe: any }) {
   return (
     <View style={styles.recipeCard}>
-      <Text style={styles.recipeName}>{recipe.name}</Text>
+      <Text style={styles.recipeName}>{recipe?.name ?? 'Untitled recipe'}</Text>
       <View style={styles.ratingInput} >
         {
           [1, 2, 3, 4, 5].map((star) => (
-            <View>
-              {star <= recipe.rating ?
+            <View key={star}>
+              {star <= Number(recipe?.rating ?? 0) ?
                 <Text>  <Ionicons name="star" size={18} color="#060606" />
                 </Text>
 
@@ -107,7 +107,10 @@ export default function TabTwoScreen() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.message ?? 'Could not load recipes');
-      setRecipes(data.recipes);
+      const databaseRecipes = Array.isArray(data?.recipes) ? data.recipes : [];
+      setRecipes(databaseRecipes.filter((recipe: any) => (
+        recipe && typeof recipe === 'object' && recipe._id && recipe.name && recipe.category
+      )));
     } catch (error) {
       console.error('Could not load recipes', error);
     }
@@ -187,11 +190,14 @@ export default function TabTwoScreen() {
               {/* my recipes */}
               <View style={styles.recipesContainer}>
                 {
-                  recipes.filter
-                    ((recipe: any) => filter === "All" ? recipe : recipe.category === filter).map
-                    ((recipe) => (
-                      <Pressable onPress={() => setShowRecipeDetails({ show: true, recipe: recipe })}>
-                        <RecipeCard key={recipe._id} recipe={recipe} />
+                  recipes
+                    .filter((recipe: any) => recipe && (filter === "All" || recipe.category === filter))
+                    .map((recipe: any) => (
+                      <Pressable
+                        key={recipe._id}
+                        onPress={() => setShowRecipeDetails({ show: true, recipe })}
+                      >
+                        <RecipeCard recipe={recipe} />
 
                       </Pressable>
                     ))

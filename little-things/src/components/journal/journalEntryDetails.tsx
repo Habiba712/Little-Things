@@ -14,6 +14,15 @@ import GalleryIcon from '@/assets/images/gallery.svg';
 import FavoriteIcon from '@/assets/images/favorite.svg';
 import BookIcon from '@/assets/images/book.svg';
 
+const getDisplayDate = (entry: any) => {
+  const date = entry?.genericDate ?? entry?.createdAt;
+  return date ? new Date(date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }) : '';
+};
+
 export default function JournalEntryDetails(
     {
         items,
@@ -36,7 +45,7 @@ export default function JournalEntryDetails(
         </Pressable>
          <View style={styles.entriesContainer}>
             <Text style={styles.header}>
-                {items[0].date}
+                {items[0] ? getDisplayDate(items[0]) : ''}
             </Text>
                  {items.map((item, index) => (
               <View key={index} style={styles.entryContainer}>
@@ -111,7 +120,9 @@ const styles = StyleSheet.create({
     
   },
    entriesContainer: {
-     paddingVertical: Spacing.two,
+    //  paddingVertical: Spacing.two,
+    borderTopWidth: 1,
+    borderColor: '#1d1b19',
       gap: Spacing.three,
   
   

@@ -8,7 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import JournalEntryDetails from '@/components/journal/journalEntryDetails';
 import CoffeeIcon from '@/assets/images/hot.svg';
@@ -71,7 +71,10 @@ const getDayName = (date: string) => {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.message ?? 'Could not load journal entries');
-      setEntries(data.entries);
+      const databaseEntries = Array.isArray(data?.entries) ? data.entries : [];
+      setEntries(databaseEntries.filter((entry: any) => (
+        entry && typeof entry === 'object' && (entry.genericDate || entry.createdAt)
+      )));
     } catch (error) {
       console.error('Could not load journal entries', error);
     } finally {
@@ -142,8 +145,8 @@ const getDayName = (date: string) => {
                       <Text style={styles.entryDay}>{getDayName(date)}</Text>
                       <View style={styles.icons}>
                         {
-                        dateEntries.map((item, index) => (
-                          <>
+                        (Array.isArray(dateEntries) ? dateEntries : []).map((item, index) => (
+                          <Fragment key={item?._id ?? `${date}-${index}`}>
                             {item.catName === 'Coffee' ? (
                               <Text style={styles.iconBox}><CoffeeIcon width={20} height={20} />
                                 </Text>
@@ -183,7 +186,7 @@ const getDayName = (date: string) => {
                                       null}
 
 
-                          </>
+                          </Fragment>
                         ))
                       }
                       </View>

@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+// import * as storage from 'expo-secure-store';
+import { storage } from '../../lib/storage';
 import { Float, Reveal, Sparkles } from '../../constants/Cozy';
 import { colors, fonts } from '../../constants/Theme2';
 
@@ -40,8 +41,8 @@ export default function Login() {
       if (!res.ok) {
         setError(data?.message ?? 'Wrong name or password');
       } else {
-        await SecureStore.setItemAsync('token', data.token);
-        await SecureStore.setItemAsync('onboarded', JSON.stringify(true));
+        storage.setItem('token', data.token);
+        storage.setItem('onboarded', JSON.stringify(true));
         router.replace('/tabs');
       }
     } catch (e) {
