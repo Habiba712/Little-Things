@@ -12,6 +12,11 @@ import CookiesIcon from '@/assets/images/cookies.svg';
 import GalleryIcon from '@/assets/images/gallery.svg';
 import FavoriteIcon from '@/assets/images/favorite.svg';
 import BookIcon from '@/assets/images/book.svg';
+import {
+  JournalEntryDeleteModal,
+  JournalEntryEditorModal,
+  JournalForm,
+} from '@/components/journal/journalEntryActions';
 
 type ItemState = {
   name: string;
@@ -24,9 +29,17 @@ type ItemState = {
 export default function CalendarScreen() {
 
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [calendarEntries, setCalendarEntries] = useState<any[]>([]);
   const [myEntries, setMyEntries] = useState<ItemState[]>([]);
+  const [actionEntry, setActionEntry] = useState<any | null>(null);
+  const [editEntry, setEditEntry] = useState<any | null>(null);
+  const [deleteEntry, setDeleteEntry] = useState<any | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const getEntries = async (selectedDay: string) => {
+  const getEntries = async (day?: string) => {
     try {
       const token = SecureStore.getItem('token');
       const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/journal-entries`, {
@@ -34,15 +47,116 @@ export default function CalendarScreen() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.message ?? 'Could not load journal entries');
-      const { entries } = data;
-      const todayEntries = entries.filter((item: ItemState) => item.genericDate.split('T')[0] === selectedDay);
-      setMyEntries(todayEntries);
+      const entries = Array.isArray(data?.entries) ? data.entries : [];
+      setCalendarEntries(entries);
+      if (day) {
+        setMyEntries(entries.filter((item: ItemState) => item.genericDate?.split('T')[0] === day));
+      }
     } catch (error) {
       console.error('Could not load calendar entries', error);
     }
    
     
   }
+
+  useEffect(() => {
+    getEntries();
+  }, []);
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const renderSticker = (category?: string) => {
+    // if (category === 'Coffee') return <CoffeeIcon width={16} height={16} />;
+    // if (category === 'Books') return <BookIcon width={16} height={16} />;
+    // if (category === 'Songs') return <MusicIcon width={16} height={16} />;
+    // if (category === 'Tiny Treats') return <CookiesIcon width={16} height={16} />;
+    // if (category === 'Moments') return <GalleryIcon width={16} height={16} />;
+    return <Text>🌸</Text>;
+  };
+
+  const renderCalendarDay = ({ date, state }: any) => {
+    if (!date) return null;
+
+    const dayEntries = calendarEntries.filter(
+      (entry) => entry?.genericDate?.split('T')[0] === date.dateString,
+    );
+    const isToday = date.dateString === today;
+
+    return (
+      <Pressable
+        style={styles.calendarDay}
+        onPress={() => {
+          setSelectedDay(date.dateString);
+          getEntries(date.dateString);
+        }}
+      >
+        <View style={[styles.dayNumber, isToday && styles.todayCircle]}>
+          <Text style={[styles.dayNumberText, isToday && styles.todayNumberText, state === 'disabled' && styles.disabledDayText]}>
+            {date.day}
+          </Text>
+        </View>
+        <View style={styles.daySticker}>
+          {dayEntries.length > 0 && renderSticker(dayEntries[0].catName)}
+        </View>
+      </Pressable>
+    );
+  };
+
+  const updateEntry = async (form: JournalForm) => {
+    if (!editEntry || !form.name.trim()) return;
+
+    setUpdateError(null);
+    setSaving(true);
+    try {
+      const token = SecureStore.getItem('token');
+      const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/journal-entries/${editEntry._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message ?? 'Could not update journal entry');
+      setCalendarEntries((current) => current.map((entry) => entry._id === data.entry._id ? data.entry : entry));
+      setMyEntries((current) => current.map((entry: any) => entry._id === data.entry._id ? data.entry : entry));
+      setEditEntry(null);
+      setActionEntry(null);
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : 'Could not update journal entry');
+      console.error('Could not update calendar journal entry', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeEntry = async () => {
+    if (!deleteEntry) return;
+
+    setDeleteError(null);
+    setDeleting(true);
+    try {
+      const token = SecureStore.getItem('token');
+      const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/journal-entries/${deleteEntry._id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data?.message ?? 'Could not delete journal entry');
+      }
+      setCalendarEntries((current) => current.filter((entry) => entry._id !== deleteEntry._id));
+      setMyEntries((current) => current.filter((entry: any) => entry._id !== deleteEntry._id));
+      setDeleteEntry(null);
+      setActionEntry(null);
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Could not delete journal entry');
+      console.error('Could not delete calendar journal entry', error);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // useEffect(() => {
   //   getEntries(selectedDay);
@@ -52,11 +166,7 @@ export default function CalendarScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.header}>Calendar</Text>
       <Calendar
-      onDayPress={(day : any) => {
-        setSelectedDay(day.dateString);
-        getEntries(day.dateString);
-        console.log('day',day.dateString);
-      }}
+      dayComponent={renderCalendarDay}
        style={styles.calendar}
        theme={{
     backgroundColor: '#FFF9F3',
@@ -83,7 +193,7 @@ export default function CalendarScreen() {
    {
      myEntries.length > 0 &&
       <View style={styles.entryHeader}>
-         <Text style={styles.entryDate}>{myEntries.length > 0 ? myEntries[0].date : ''}</Text>
+         <Text style={styles.entryDate}>{selectedDay ?? ''}</Text>
 <Pressable style={styles.entryButton}
         >
           <Text style={styles.entryButtonText}>View details
@@ -100,9 +210,21 @@ export default function CalendarScreen() {
        myEntries.length > 0 ?
        myEntries
        .sort((a, b) => new Date(b.genericDate).getTime() - new Date(a.genericDate).getTime())
-       .map((item, index) => (
+       .map((item: any, index) => (
      <View style={styles.entryDetails} key={index} >
-     
+       <Pressable style={styles.entryMenuButton} onPress={() => setActionEntry(actionEntry?._id === item._id ? null : item)}>
+         <Ionicons name="ellipsis-horizontal" size={22} color="#7A6555" />
+       </Pressable>
+       {actionEntry?._id === item._id && (
+         <View style={styles.actionMenu}>
+           <Pressable style={styles.menuButton} onPress={() => { setActionEntry(null); setUpdateError(null); setEditEntry(item); }}>
+             <Text style={styles.menuText}>Edit</Text>
+           </Pressable>
+           <Pressable style={styles.menuDeleteButton} onPress={() => { setActionEntry(null); setDeleteError(null); setDeleteEntry(item); }}>
+             <Text style={styles.menuDeleteText}>Delete</Text>
+           </Pressable>
+         </View>
+       )}
         {item.catName === 'Coffee' ? (
                               <CoffeeIcon width={30} height={30} />
                             ) : item.catName === 'Books' ? (
@@ -134,6 +256,22 @@ export default function CalendarScreen() {
    </View>
 
       </ScrollView>
+
+      <JournalEntryEditorModal
+        visible={editEntry !== null}
+        entry={editEntry}
+        saving={saving}
+        error={updateError}
+        onClose={() => setEditEntry(null)}
+        onSave={updateEntry}
+      />
+      <JournalEntryDeleteModal
+        visible={deleteEntry !== null}
+        deleting={deleting}
+        error={deleteError}
+        onCancel={() => setDeleteEntry(null)}
+        onConfirm={removeEntry}
+      />
     
    
     </SafeAreaView>
@@ -169,6 +307,41 @@ scrollContent: {
   borderRadius: 20,
   paddingBottom: 10,
 
+},
+calendarDay: {
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  minWidth: 38,
+  minHeight: 48,
+  paddingTop: 2,
+},
+dayNumber: {
+  width: 28,
+  height: 28,
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 14,
+},
+todayCircle: {
+  backgroundColor: '#C2936F',
+},
+dayNumberText: {
+  color: '#3D2B1F',
+  fontFamily: 'SourceSans3_400Regular',
+  fontSize: 15,
+},
+todayNumberText: {
+  color: '#FFF9F3',
+  fontFamily: 'SourceSans3_600SemiBold',
+},
+disabledDayText: {
+  color: '#D8C8BB',
+},
+daySticker: {
+  alignItems: 'center',
+  justifyContent: 'center',
+  height: 17,
+  marginTop: 1,
 },
 entryContainer:{
   marginTop: 20,
@@ -221,6 +394,43 @@ entryDetails:{
  justifyContent: 'flex-start',
  alignItems: 'center',
  gap: 10,
+ position: 'relative',
+ paddingRight: 30,
+},
+entryMenuButton: {
+  position: 'absolute',
+  top: -4,
+  right: 0,
+  padding: 4,
+},
+actionMenu: {
+  position: 'absolute',
+  top: 24,
+  right: 0,
+  zIndex: 2,
+  padding: 4,
+  borderRadius: 10,
+  backgroundColor: '#FFF9F3',
+  borderWidth: 1,
+  borderColor: '#D4C0A8',
+},
+menuButton: {
+  paddingHorizontal: 12,
+  paddingVertical: 6,
+},
+menuDeleteButton: {
+  paddingHorizontal: 12,
+  paddingVertical: 6,
+  borderTopWidth: 1,
+  borderTopColor: '#E6D8C9',
+},
+menuText: {
+  color: '#5F3B21',
+  fontFamily: Fonts.handBold,
+},
+menuDeleteText: {
+  color: '#A65742',
+  fontFamily: Fonts.handBold,
 },
 entryNote:{
   fontSize: 11.5,

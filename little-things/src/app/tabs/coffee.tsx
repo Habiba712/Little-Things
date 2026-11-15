@@ -63,12 +63,12 @@ function RecipeCard({ recipe }: { recipe: any }) {
           [1, 2, 3, 4, 5].map((star) => (
             <View key={star}>
               {star <= Number(recipe?.rating ?? 0) ?
-                <Text>  <Ionicons name="star" size={18} color="#060606" />
+                <Text>  <Ionicons name="star" size={18} color="#D4C0A8" />
                 </Text>
 
                 :
                 <Text style={styles.starOutline}>
-                  <Ionicons name="star-outline" size={18} color="#060606" />
+                  <Ionicons name="star-outline" size={18} color="#D4C0A8" />
 
                 </Text>
               }
@@ -128,8 +128,10 @@ export default function TabTwoScreen() {
         throw new Error(data?.message ?? 'Could not delete recipe');
       }
       await loadRecipes();
+      return true;
     } catch (error) {
       console.error('Could not delete recipe', error);
+      return false;
     }
   }
   useEffect(() => {
@@ -146,9 +148,6 @@ export default function TabTwoScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}     >
-      {
-        showModal ? <AddRecipe onBack={() => setShowModal(false)} /> :
-          showRecipeDetails.show === true ? <RecipeDetails onBack={() => setShowRecipeDetails({ show: false, recipe: null })} recipe={showRecipeDetails.recipe} onDelete={() => removeRecipe(showRecipeDetails.recipe._id)} /> :
 
             <ScrollView
               refreshControl={
@@ -157,7 +156,13 @@ export default function TabTwoScreen() {
                   onRefresh={onRefresh}
                 />
               }
-              contentContainerStyle={styles.scrollContent} >
+              contentContainerStyle={styles.scrollContent}
+               >
+
+                 {
+        showModal ? <AddRecipe onBack={() => setShowModal(false)} /> :
+          showRecipeDetails.show === true ? <RecipeDetails onBack={() => setShowRecipeDetails({ show: false, recipe: null })} recipe={showRecipeDetails.recipe} onDelete={() => removeRecipe(showRecipeDetails.recipe._id)} /> :
+<>
               <View style={styles.header}>
                 <Text style={styles.sectionTitle}>Coffee Corner</Text>
                 <Pressable style={styles.newButton} onPress={() => { setShowModal(true) }}>
@@ -202,9 +207,10 @@ export default function TabTwoScreen() {
                       </Pressable>
                     ))
                 }
-              </View>
+              </View></>
+                 }
             </ScrollView>
-      }
+
 
 
     </SafeAreaView>
@@ -218,7 +224,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     flexDirection: 'column',
-    borderColor: '#c2936f',
+    borderColor: '#D4C0A8',
 
   },
   scrollContent: {
@@ -240,11 +246,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderColor: '#c2936f',
+    borderColor: '#D4C0A8',
   },
   newButton: {
-    backgroundColor: '#000000',
-    borderRadius: 5,
+    backgroundColor: '#7B3F24',
+    borderRadius: 25,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -277,7 +283,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
 
     borderWidth: 1,
-    borderColor: '#d1d0cf',
+    borderColor: '#D4C0A8',
     backgroundColor: '#f7f6f5',
     display: 'flex',
     justifyContent: 'center',
@@ -288,7 +294,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.hand,
   },
   selectedCat: {
-    backgroundColor: '#191918',
+    backgroundColor: '#7B3F24',
     color: '#ffffff',
   },
 
@@ -346,7 +352,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#c2936f',
+    borderColor: '#D4C0A8',
     justifyContent: 'center',
     backgroundColor: '#f8f5f5',
   },
@@ -364,5 +370,6 @@ const styles = StyleSheet.create({
   },
   starOutline: {
     marginLeft: 5,
+    color: '#D4C0A8',
   }
 });

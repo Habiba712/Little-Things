@@ -18,6 +18,11 @@ import FavoriteIcon from '@/assets/images/favorite.svg';
 import BookIcon from '@/assets/images/book.svg';
 import { Fonts } from '@/constants/theme';
 import { router } from 'expo-router';
+import {
+  JournalEntryDeleteModal,
+  JournalEntryEditorModal,
+  JournalForm,
+} from '@/components/journal/journalEntryActions';
 
 export default function HomeScreen() {
     const now = new Date();
@@ -25,7 +30,13 @@ export default function HomeScreen() {
     console.log('today', today)
 
     const ref = useRef<View>(null);
-    const [showDeleteOption, setShowDeleteOption] = useState<number | null>(null);
+    const [actionEntry, setActionEntry] = useState<any | null>(null);
+    const [editEntry, setEditEntry] = useState<any | null>(null);
+    const [deleteEntry, setDeleteEntry] = useState<any | null>(null);
+    const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [updateError, setUpdateError] = useState<string | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
   const day = now.toLocaleString('en-US', { weekday: 'long' });
   const month = now.toLocaleString('en-US', { month: 'long' });
   const dayNumber = now.getDate();
@@ -48,6 +59,8 @@ export default function HomeScreen() {
   router.replace('/auth/login');
 };
   const onDelete = async (item: any) => {
+    setDeleteError(null);
+    setDeleting(true);
     try {
       const token = storage.getItem('token');
       const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/journal-entries/${item._id}`, {
@@ -58,9 +71,48 @@ export default function HomeScreen() {
         const data = await response.json();
         throw new Error(data?.message ?? 'Could not delete journal entry');
       }
-      loadData();
+      setDeleteEntry(null);
+      setActionEntry(null);
+      await loadData();
     } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Could not delete journal entry');
       console.error('Could not delete journal entry', error);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const onUpdate = async (form: JournalForm) => {
+    if (!editEntry || !form.name.trim()) return;
+
+    setUpdateError(null);
+    setSaving(true);
+    try {
+      const token = storage.getItem('token');
+      console.log('Updating entry with ID:', form);
+      const response = await fetch(`${process.env.EXPO_PUBLIC_ADDRESS_IP}/api/journal-entries/${editEntry._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: form.name,
+          details: form.details,
+          note: form.note,
+          catName: form.catName,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message ?? 'Could not update journal entry');
+      setEditEntry(null);
+      setActionEntry(null);
+      await loadData();
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : 'Could not update journal entry');
+      console.error('Could not update journal entry', error);
+    } finally {
+      setSaving(false);
     }
   };
  const loadData = async () => {
@@ -145,23 +197,22 @@ if (!entriesResponse.ok) {
         <View style={styles.tape}>
           </View>
         {
-          showDeleteOption !== index ?   <Pressable style={styles.closeButton} onPress={() => setShowDeleteOption(index)}>
+          <Pressable style={styles.closeButton} onPress={() => setActionEntry(actionEntry?._id === item._id ? null : item)}>
          <Ionicons name="ellipsis-horizontal" size={24} color="#eccdbc"
           />
 
         </Pressable>
-        :
-        <View style={styles.closeButton} >
-          <Pressable style={styles.delButton} onPress={() => {
-            onDelete(item);
-            setShowDeleteOption(null)}}>
-            <Text >Delete</Text>
-          </Pressable>
-          <Pressable style={styles.cancelButton} onPress={() => setShowDeleteOption(null)}>
-            <Text >Cancel</Text>
-          </Pressable>
-          </View>
         }
+        {actionEntry?._id === item._id && (
+          <View style={styles.actionMenu}>
+            <Pressable style={styles.menuButton} onPress={() => { setActionEntry(null); setUpdateError(null); setEditEntry(item); }}>
+              <Text style={styles.menuText}>Edit</Text>
+            </Pressable>
+            <Pressable style={styles.menuDeleteButton} onPress={() => { setActionEntry(null); setDeleteError(null); setDeleteEntry(item); }}>
+              <Text style={styles.menuDeleteText}>Delete</Text>
+            </Pressable>
+          </View>
+        )}
       
          
         <View style={styles.iconContainer}>
@@ -206,6 +257,22 @@ if (!entriesResponse.ok) {
     </View>
 
   </ScrollView>
+
+  <JournalEntryEditorModal
+    visible={editEntry !== null}
+    entry={editEntry}
+    saving={saving}
+    // error={updateError}
+    onClose={() => setEditEntry(null)}
+    onSave={onUpdate}
+  />
+  <JournalEntryDeleteModal
+    visible={deleteEntry !== null}
+    deleting={deleting}
+    // error={deleteError}
+    onCancel={() => setDeleteEntry(null)}
+    onConfirm={() => deleteEntry && onDelete(deleteEntry)}
+  />
   
  </SafeAreaView>
   );
@@ -304,7 +371,7 @@ position: 'absolute',
     paddingVertical: Spacing.three,
     borderWidth:1,
     borderColor: '#D4C0A8',
-    backgroundColor: '#FDF7EE',
+    backgroundColor: '#fff0d8',
     borderRadius: 15,
     shadowColor: "#2C1A10",
     shadowOffset:{
@@ -337,7 +404,7 @@ position: 'absolute',
     marginTop: 5,
   },
   entryNote:{
-    fontSize: 11.5,
+    fontSize: 14.5,
     fontWeight: 400,
     color: '#7A6555',
     fontFamily: Fonts.hand,
@@ -364,6 +431,35 @@ position: 'absolute',
     gap: Spacing.one,
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.two,
+  },
+  actionMenu: {
+    position: 'absolute',
+    top: 28,
+    right: 8,
+    zIndex: 2,
+    padding: Spacing.one,
+    borderRadius: 10,
+    backgroundColor: '#FFF9F3',
+    borderWidth: 1,
+    borderColor: '#D4C0A8',
+  },
+  menuButton: {
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one,
+  },
+  menuDeleteButton: {
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one,
+    borderTopWidth: 1,
+    borderTopColor: '#E6D8C9',
+  },
+  menuText: {
+    color: '#5F3B21',
+    fontFamily: Fonts.handBold,
+  },
+  menuDeleteText: {
+    color: '#A65742',
+    fontFamily: Fonts.handBold,
   },
   delButton:{
     borderWidth: 1,

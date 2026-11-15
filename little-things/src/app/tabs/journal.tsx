@@ -213,7 +213,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-
+iconContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    },
   header: {
     width: '100%',
     fontSize: 27,
@@ -242,7 +247,7 @@ subHeader:{
     flexDirection: 'row',
     alignSelf: 'stretch',
     paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.three,
+    paddingVertical: Spacing.two,
     borderWidth:1,
     borderColor: '#D4C0A8',
     backgroundColor: '#FDF7EE',
@@ -289,7 +294,6 @@ icons:{
   
 },
 iconBox:{
-
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
@@ -316,15 +320,6 @@ entryDay:{
     fontSize: 11.5,
     fontWeight: '400',
     color: '#5f3b21',
-  },
-
-  iconContainer: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    gap: Spacing.one,
-    marginLeft: 10,
-
   },
 
   closeButton: {

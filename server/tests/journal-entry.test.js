@@ -17,6 +17,7 @@ const createdEntry = {
 const JournalEntry = {
   create: jest.fn(),
   find: jest.fn(),
+  findOneAndUpdate: jest.fn(),
   findOneAndDelete: jest.fn(),
 };
 
@@ -61,5 +62,42 @@ describe('journal entries API', () => {
 
     expect(response.status).toBe(401);
     expect(JournalEntry.create).not.toHaveBeenCalled();
+  });
+
+  test('updates an authenticated journal entry for its owner', async () => {
+    const updatedEntry = { ...createdEntry, name: 'An updated cup of coffee' };
+    JournalEntry.findOneAndUpdate.mockResolvedValue(updatedEntry);
+
+    const response = await request(app)
+      .patch('/api/journal-entries/entry-1')
+      .set('Authorization', authHeader())
+      .send({
+        name: updatedEntry.name,
+        details: updatedEntry.details,
+        note: updatedEntry.note,
+        catName: updatedEntry.catName,
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.entry).toEqual(updatedEntry);
+    expect(JournalEntry.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: 'entry-1', user: 'user-1' },
+      { $set: expect.objectContaining({ name: updatedEntry.name }) },
+      { new: true, runValidators: true },
+    );
+  });
+
+  test('deletes an authenticated journal entry for its owner', async () => {
+    JournalEntry.findOneAndDelete.mockResolvedValue(createdEntry);
+
+    const response = await request(app)
+      .delete('/api/journal-entries/entry-1')
+      .set('Authorization', authHeader());
+
+    expect(response.status).toBe(204);
+    expect(JournalEntry.findOneAndDelete).toHaveBeenCalledWith({
+      _id: 'entry-1',
+      user: 'user-1',
+    });
   });
 });

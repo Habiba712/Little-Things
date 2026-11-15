@@ -164,7 +164,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         flexDirection: 'column',
         borderColor: '#c2936f',
-        paddingHorizontal: 10,
 
         paddingTop: 8,
     },
